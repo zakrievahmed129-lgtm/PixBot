@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Démo Pix Quiz - Test PixPilot</title>
+  <link rel="stylesheet" href="content/content.css">
+  <style>
+    /* Style d'une fausse page d'exercice Pix */
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+      background-color: #f1f5f9;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pix-navbar {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .pix-logo {
+      font-weight: 800;
+      font-size: 24px;
+      color: #2563eb;
+      letter-spacing: -0.03em;
+    }
+
+    .pix-progress {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .pix-challenge-card {
+      width: 100%;
+      max-width: 860px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e2e8f0;
+      box-sizing: border-box;
+    }
+
+    .challenge-instruction {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f172a;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .challenge-description {
+      font-size: 15px;
+      color: #475569;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .choices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .choice-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .choice-item:hover {
+      border-color: #93c5fd;
+      background-color: #f8fafc;
+    }
+
+    .choice-item input {
+      width: 18px;
+      height: 18px;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+
+    .pix-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 20px;
+    }
+
+    .btn-pix-validate {
+      background-color: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .demo-info-banner {
+      width: 100%;
+      max-width: 860px;
+      margin-top: 24px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 13px;
+      color: #1e40af;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="pix-navbar">
+    <div class="pix-logo">PIX</div>
+    <div class="pix-progress">Épreuve 4 / 12 • Domaine Sécurité</div>
+  </div>
+
+  <div class="pix-challenge-card c-challenge">
+    <h1 class="challenge-instruction question-title">Quels sont les bons réflexes pour se protéger d'une tentative d'hameçonnage (phishing) par courriel ?</h1>
+    
+    <p class="challenge-description statement">
+      Un employé reçoit un courriel prétendant provenir du service informatique et lui demandant de réinitialiser d'urgence son mot de passe via un lien.
+      Cochez <strong>toutes</strong> les réponses valides.
+    </p>
+
+    <div class="choices-list">
+      <label class="choice-item">
+        <input type="checkbox" name="q1" value="opt1" id="opt1">
+        <span>Vérifier minutieusement l'adresse d'expédition réelle (nom de domaine après le @)</span>
+      </label>
+
+      <label class="choice-item">
+        <input type="checkbox" name="q2" value="opt2" id="opt2">
+        <span>Survoler le lien avec le curseur sans cliquer pour contrôler l'URL de destination</span>
+      </label>
+
+      <label class="choice-item">
+        <input type="checkbox" name="q3" value="opt3" id="opt3">
+        <span>Répondre immédiatement au courriel en indiquant son mot de passe actuel pour vérification</span>
+      </label>
+
+      <label class="choice-item">
+        <input type="checkbox" name="q4" value="opt4" id="opt4">
+        <span>Signaler le message suspect au responsable de la sécurité des systèmes d'information (RSSI)</span>
+      </label>
+    </div>
+
+    <div class="pix-actions">
+      <button class="btn-pix-validate">Valider</button>
+    </div>
+  </div>
+
+  <div class="demo-info-banner">
+    💡 <strong>Page de test PixPilot :</strong> Le bouton flottant moderne PixPilot se trouve en bas à droite.<br>
+    Clique dessus (ou appuie sur <kbd>Alt + P</kbd>), configure ta clé API Gemini si ce n'est pas fait, puis clique sur <strong>« Scanner la question »</strong>.
+  </div>
+
+  <!-- Scripts nécessaires pour le test direct -->
+  <script src="lib/jszip.min.js"></script>
+  <script src="lib/xlsx.mini.js"></script>
+  <script src="lib/html2canvas.min.js"></script>
+  <script src="lib/pix-extractor.js"></script>
+  <script src="lib/file-parser.js"></script>
+  <script src="lib/gemini.js"></script>
+  <script src="content/content.js"></script>
+
+</body>
+</html>
+

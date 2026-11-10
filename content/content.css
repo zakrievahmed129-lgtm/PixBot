@@ -1,0 +1,870 @@
+/* ==========================================================================
+   PixPilot - Style Console CMD & Ancien ChatGPT (Minimaliste, Monospace, Épuré)
+   Zéro néon. Inspiré du terminal CMD classique et du streaming original ChatGPT.
+   ========================================================================== */
+
+:root {
+  --pp-bg-base: #0c0d10;
+  --pp-bg-surface: #131418;
+  --pp-bg-elevated: #1a1c22;
+  --pp-bg-subtle: #24262e;
+  --pp-border: #272a32;
+  --pp-border-hover: #3f424e;
+  --pp-border-accent: rgba(16, 185, 129, 0.4);
+  
+  --pp-text-main: #f4f4f5;
+  --pp-text-secondary: #a1a1aa;
+  --pp-text-muted: #71717a;
+  
+  --pp-terminal-green: #10b981;
+  --pp-terminal-cyan: #38bdf8;
+  --pp-terminal-yellow: #f59e0b;
+  --pp-terminal-gray: #52525b;
+  
+  --pp-font-mono: "Consolas", "SFMono-Regular", "Liberation Mono", Menlo, Monaco, "Courier New", monospace;
+  --pp-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+  
+  --pp-radius-sm: 4px;
+  --pp-radius-md: 8px;
+  --pp-radius-lg: 12px;
+  --pp-radius-full: 9999px;
+  
+  --pp-shadow-floating: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--pp-border);
+  --pp-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* --------------------------------------------------------------------------
+   Barre de Défilement Console (Custom Scrollbar Sombre & Épurée)
+   Élimine la barre blanche native de Windows et s'accorde au thème CMD.
+   -------------------------------------------------------------------------- */
+#pixpilot-root,
+#pixpilot-root *,
+#pixpilot-panel,
+#pixpilot-panel * {
+  scrollbar-width: thin;
+  scrollbar-color: #272a32 transparent;
+}
+
+#pixpilot-root ::-webkit-scrollbar,
+#pixpilot-panel ::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+#pixpilot-root ::-webkit-scrollbar-track,
+#pixpilot-panel ::-webkit-scrollbar-track {
+  background: #0c0d10;
+}
+
+#pixpilot-root ::-webkit-scrollbar-thumb,
+#pixpilot-panel ::-webkit-scrollbar-thumb {
+  background: #272a32;
+  border-radius: 4px;
+}
+
+#pixpilot-root ::-webkit-scrollbar-thumb:hover,
+#pixpilot-panel ::-webkit-scrollbar-thumb:hover {
+  background: #3f424e;
+}
+
+#pixpilot-root ::-webkit-scrollbar-thumb:active,
+#pixpilot-panel ::-webkit-scrollbar-thumb:active {
+  background: #10b981;
+}
+
+#pixpilot-root ::-webkit-scrollbar-corner,
+#pixpilot-panel ::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   Bouton Flottant (Pill Minimaliste Style Console)
+   -------------------------------------------------------------------------- */
+#pixpilot-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2147483640;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background-color: var(--pp-bg-surface);
+  color: var(--pp-text-main);
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-radius-sm);
+  box-shadow: var(--pp-shadow-floating);
+  cursor: pointer;
+  user-select: none;
+  font-family: var(--pp-font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.15s ease;
+}
+
+#pixpilot-fab:hover {
+  background-color: var(--pp-bg-elevated);
+  border-color: var(--pp-border-hover);
+  transform: translateY(-1px);
+}
+
+#pixpilot-fab .fab-icon {
+  color: var(--pp-terminal-green);
+  font-weight: bold;
+}
+
+#pixpilot-fab .fab-badge {
+  font-size: 10px;
+  padding: 1px 5px;
+  background: var(--pp-bg-base);
+  border: 1px solid var(--pp-border);
+  border-radius: 2px;
+  color: var(--pp-terminal-green);
+}
+
+/* --------------------------------------------------------------------------
+   Fenêtre Console Principale (Style CMD / ChatGPT Ancien)
+   -------------------------------------------------------------------------- */
+#pixpilot-panel {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 460px;
+  max-width: calc(100vw - 32px);
+  height: 640px;
+  max-height: calc(100vh - 48px);
+  z-index: 2147483646;
+  background-color: var(--pp-bg-base);
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-radius-md);
+  box-shadow: var(--pp-shadow-floating);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-family: var(--pp-font-mono);
+  color: var(--pp-text-main);
+  opacity: 0;
+  transform: translateY(12px) scale(0.99);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  box-sizing: border-box;
+}
+
+#pixpilot-panel * {
+  box-sizing: border-box;
+}
+
+#pixpilot-panel.is-open {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Barre de Titre Console CMD
+   -------------------------------------------------------------------------- */
+.pp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background-color: var(--pp-bg-surface);
+  border-bottom: 1px solid var(--pp-border);
+  user-select: none;
+}
+
+.pp-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pp-console-dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pp-console-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--pp-terminal-gray);
+}
+
+.pp-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pp-text-main);
+  margin: 0;
+  letter-spacing: 0.03em;
+}
+
+.pp-model-tag {
+  font-size: 10px;
+  padding: 2px 6px;
+  background: var(--pp-bg-base);
+  border: 1px solid var(--pp-border);
+  border-radius: 3px;
+  color: var(--pp-terminal-green);
+}
+
+.pp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pp-icon-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--pp-text-secondary);
+  width: 26px;
+  height: 26px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-family: var(--pp-font-mono);
+  font-size: 13px;
+  transition: all 0.15s ease;
+}
+
+.pp-icon-btn:hover {
+  background: var(--pp-bg-elevated);
+  border-color: var(--pp-border);
+  color: var(--pp-text-main);
+}
+
+/* --------------------------------------------------------------------------
+   Barre de Commandes Rapides
+   -------------------------------------------------------------------------- */
+.pp-quick-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--pp-bg-surface);
+  border-bottom: 1px solid var(--pp-border);
+}
+
+.pp-btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--pp-font-mono);
+  color: var(--pp-text-main);
+  background: var(--pp-bg-elevated);
+  border: 1px solid var(--pp-border);
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pp-btn-pill:hover {
+  background: var(--pp-bg-subtle);
+  border-color: var(--pp-border-hover);
+}
+
+.pp-btn-pill.primary {
+  background: var(--pp-bg-base);
+  color: var(--pp-terminal-green);
+  border-color: var(--pp-border-accent);
+}
+
+.pp-btn-pill.primary:hover {
+  background: rgba(16, 185, 129, 0.1);
+}
+
+/* --------------------------------------------------------------------------
+   Fichiers Attachés (Chips Style Terminal)
+   -------------------------------------------------------------------------- */
+.pp-attachments-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 14px;
+  background: var(--pp-bg-surface);
+  border-bottom: 1px solid var(--pp-border);
+  max-height: 85px;
+  overflow-y: auto;
+}
+
+.pp-attachments-container:empty {
+  display: none;
+}
+
+.pp-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  background: var(--pp-bg-base);
+  border: 1px solid var(--pp-border);
+  border-radius: 3px;
+  font-size: 11px;
+  font-family: var(--pp-font-mono);
+  color: var(--pp-text-secondary);
+  max-width: 220px;
+  transition: all 0.15s ease;
+}
+
+.pp-file-chip.has-preview {
+  cursor: pointer;
+}
+
+.pp-file-chip.has-preview:hover {
+  border-color: var(--pp-terminal-green);
+  background: var(--pp-bg-elevated);
+}
+
+.pp-file-chip-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  object-fit: cover;
+  border: 1px solid var(--pp-border);
+  flex-shrink: 0;
+}
+
+.pp-file-chip-zoom {
+  font-size: 10px;
+  opacity: 0.6;
+  margin-left: 2px;
+  transition: opacity 0.15s ease;
+}
+
+.pp-file-chip:hover .pp-file-chip-zoom {
+  opacity: 1;
+}
+
+.pp-file-chip-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--pp-text-main);
+}
+
+.pp-file-chip-remove {
+  cursor: pointer;
+  color: var(--pp-text-muted);
+  font-size: 12px;
+}
+
+.pp-file-chip-remove:hover {
+  color: #ef4444;
+}
+
+/* --------------------------------------------------------------------------
+   Corps de la Console (Zone d'affichage des résultats)
+   -------------------------------------------------------------------------- */
+.pp-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--pp-bg-base);
+}
+
+/* Message d'accueil style console */
+.pp-empty-state {
+  margin: auto;
+  text-align: left;
+  max-width: 360px;
+  color: var(--pp-text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px dashed var(--pp-border);
+  border-radius: 4px;
+}
+
+.pp-empty-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--pp-terminal-green);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pp-empty-desc {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--pp-text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   Résultat Console CMD / Ancien ChatGPT
+   -------------------------------------------------------------------------- */
+.pp-result-card {
+  background: var(--pp-bg-surface);
+  border: 1px solid var(--pp-border);
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--pp-shadow-card);
+}
+
+.pp-console-cmdline {
+  font-size: 11px;
+  color: var(--pp-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--pp-border);
+}
+
+.pp-console-cmdline .prompt {
+  color: var(--pp-terminal-green);
+  font-weight: bold;
+}
+
+/* Encart Réponse Détectée (Style Terminal Box) */
+.pp-answer-banner {
+  background: var(--pp-bg-base);
+  border: 1px solid var(--pp-border-accent);
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pp-answer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pp-answer-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--pp-terminal-green);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pp-header-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Boutons Terminal [ COPIER ] & [ APPLIQUER ] */
+.pp-btn-terminal-action {
+  font-size: 11px;
+  font-family: var(--pp-font-mono);
+  font-weight: 600;
+  background: var(--pp-bg-surface);
+  border: 1px solid var(--pp-border);
+  color: var(--pp-text-main);
+  padding: 4px 9px;
+  border-radius: 3px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.pp-btn-terminal-action:hover {
+  background: var(--pp-bg-elevated);
+  border-color: var(--pp-border-hover);
+}
+
+.pp-btn-terminal-action.primary {
+  color: var(--pp-terminal-green);
+  border-color: var(--pp-border-accent);
+}
+
+.pp-btn-terminal-action.primary:hover {
+  background: rgba(16, 185, 129, 0.12);
+}
+
+/* Réponse Unique */
+.pp-single-answer-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #08090b;
+  border: 1px solid var(--pp-border);
+  border-radius: 3px;
+  padding: 10px 12px;
+}
+
+.pp-answer-text {
+  font-family: var(--pp-font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: #ffffff;
+  word-break: break-word;
+  user-select: all;
+  letter-spacing: 0.02em;
+}
+
+.pp-answer-text::before {
+  content: "> ";
+  color: var(--pp-terminal-green);
+}
+
+/* Réponses Multiples */
+.pp-multi-answers-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pp-answer-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: #08090b;
+  border: 1px solid var(--pp-border);
+  border-radius: 3px;
+  padding: 8px 10px;
+}
+
+.pp-answer-item:hover {
+  border-color: var(--pp-border-hover);
+}
+
+.pp-answer-item-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--pp-text-main);
+  word-break: break-word;
+}
+
+.pp-answer-item-text::before {
+  content: "> ";
+  color: var(--pp-terminal-green);
+}
+
+/* --------------------------------------------------------------------------
+   Explication & Animation d'Écriture (Ancien ChatGPT Typewriter)
+   -------------------------------------------------------------------------- */
+.pp-explanation-section {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #d4d4d8;
+  font-family: var(--pp-font-mono);
+  padding-top: 4px;
+}
+
+.pp-explanation-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--pp-text-muted);
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pp-typewriter-text {
+  position: relative;
+  word-break: break-word;
+  white-space: pre-wrap;
+  color: #e4e4e7;
+}
+
+/* Curseur Bloc Monospace Authentique Style CMD / ChatGPT Original */
+.pp-cursor {
+  display: inline-block;
+  width: 8px;
+  height: 14px;
+  background-color: var(--pp-terminal-green);
+  margin-left: 2px;
+  vertical-align: -2px;
+  animation: pp-cmd-blink 0.75s step-start infinite;
+}
+
+@keyframes pp-cmd-blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.pp-explanation-section code {
+  font-family: var(--pp-font-mono);
+  font-size: 11px;
+  background: #08090b;
+  border: 1px solid var(--pp-border);
+  padding: 1px 4px;
+  border-radius: 2px;
+  color: var(--pp-terminal-green);
+}
+
+.pp-explanation-section strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* --------------------------------------------------------------------------
+   Zone Inférieure de Saisie Console (Prompt CMD)
+   -------------------------------------------------------------------------- */
+.pp-footer {
+  padding: 10px 14px;
+  background: var(--pp-bg-surface);
+  border-top: 1px solid var(--pp-border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pp-input-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--pp-bg-base);
+  border: 1px solid var(--pp-border);
+  border-radius: 3px;
+  padding: 6px 10px;
+}
+
+.pp-input-row:focus-within {
+  border-color: var(--pp-terminal-green);
+}
+
+.pp-prompt-symbol {
+  color: var(--pp-terminal-green);
+  font-weight: bold;
+  font-size: 13px;
+  user-select: none;
+}
+
+.pp-textarea {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--pp-text-main);
+  font-family: var(--pp-font-mono);
+  font-size: 12px;
+  line-height: 1.4;
+  resize: none;
+  max-height: 80px;
+  min-height: 22px;
+}
+
+.pp-textarea::placeholder {
+  color: var(--pp-text-muted);
+}
+
+.pp-btn-send {
+  padding: 4px 8px;
+  height: 26px;
+  border-radius: 2px;
+  background: var(--pp-bg-elevated);
+  border: 1px solid var(--pp-border);
+  color: var(--pp-terminal-green);
+  font-family: var(--pp-font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pp-btn-send:hover {
+  background: var(--pp-terminal-green);
+  color: #000000;
+}
+
+.pp-btn-send:disabled {
+  background: var(--pp-bg-base);
+  color: var(--pp-text-muted);
+  cursor: not-allowed;
+}
+
+.pp-status-hint {
+  font-size: 10px;
+  color: var(--pp-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--pp-font-mono);
+}
+
+/* --------------------------------------------------------------------------
+   Modal Paramètres (Style Boîte Console)
+   -------------------------------------------------------------------------- */
+.pp-settings-modal {
+  position: absolute;
+  inset: 0;
+  background: var(--pp-bg-base);
+  z-index: 10;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  font-family: var(--pp-font-mono);
+}
+
+.pp-settings-modal.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pp-settings-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--pp-text-main);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--pp-border);
+}
+
+.pp-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pp-label {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--pp-text-secondary);
+}
+
+.pp-input-text {
+  background: var(--pp-bg-surface);
+  border: 1px solid var(--pp-border);
+  border-radius: 3px;
+  padding: 6px 10px;
+  color: var(--pp-text-main);
+  font-size: 12px;
+  outline: none;
+  font-family: var(--pp-font-mono);
+}
+
+.pp-input-text:focus {
+  border-color: var(--pp-terminal-green);
+}
+
+.pp-select {
+  background: var(--pp-bg-surface);
+  border: 1px solid var(--pp-border);
+  border-radius: 3px;
+  padding: 6px 10px;
+  color: var(--pp-text-main);
+  font-size: 12px;
+  outline: none;
+  font-family: var(--pp-font-mono);
+  cursor: pointer;
+}
+
+.pp-help-text {
+  font-size: 10px;
+  color: var(--pp-text-muted);
+}
+
+.pp-help-text a {
+  color: var(--pp-terminal-green);
+  text-decoration: none;
+}
+
+.pp-btn-save {
+  padding: 8px 14px;
+  background: var(--pp-bg-elevated);
+  border: 1px solid var(--pp-border-accent);
+  border-radius: 3px;
+  color: var(--pp-terminal-green);
+  font-family: var(--pp-font-mono);
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-top: 6px;
+}
+
+.pp-btn-save:hover {
+  background: var(--pp-terminal-green);
+  color: #000000;
+}
+
+/* --------------------------------------------------------------------------
+   Modal Visualiseur de Capture d'Écran (Image Preview Lightbox)
+   -------------------------------------------------------------------------- */
+.pp-image-preview-modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 13, 16, 0.94);
+  backdrop-filter: blur(8px);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  font-family: var(--pp-font-mono);
+}
+
+.pp-image-preview-modal.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.pp-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--pp-bg-surface);
+  border-bottom: 1px solid var(--pp-border);
+  font-size: 11px;
+  color: var(--pp-terminal-green);
+  font-weight: 600;
+}
+
+.pp-preview-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  overflow: auto;
+  gap: 10px;
+}
+
+.pp-preview-body img {
+  max-width: 100%;
+  max-height: 85%;
+  object-fit: contain;
+  border-radius: 4px;
+  border: 1px solid var(--pp-border);
+  background: #ffffff; /* Fond blanc neutre pour bien lire le quiz Pix */
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
+  cursor: zoom-out;
+}
+
+.pp-preview-hint {
+  font-size: 10px;
+  color: var(--pp-text-muted);
+}
