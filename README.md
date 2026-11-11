@@ -31,6 +31,12 @@
 6. **Animation d'Écriture Épurée** :
    - Rendu de l'explication et du raisonnement caractère par caractère avec curseur fluide et mise en forme markdown soignée (gras, blocs de code, listes).
 
+7. **🛡️ Bouclier Anti-Détection & Protection de la Vie Privée (Anti-Espion Pix)** :
+   - **Destruction préventive des écouteurs de Pix** : Injecté dès le démarrage de la page (`document_start`) en contexte principal (`world: "MAIN"`) pour désamorcer les mouchards avant l'exécution du code de Pix.
+   - **Changement d'onglet indétectable** : Interception et blocage des écouteurs `visibilitychange`, `pagehide`, `blur` et `focusout` sur la fenêtre. Forçage de `document.hidden = false`, `document.visibilityState = 'visible'` et `document.hasFocus() = true`.
+   - **Sortie de souris indétectable** : Interception et suppression des écouteurs `mouseleave`, `pointerleave` et filtrage de `mouseout` lorsque le curseur sort de l'écran.
+   - **Préservation des épreuves** : Les champs de saisie (`<input>`, `<textarea>`) conservent leur comportement normal pour que la validation des réponses fonctionne parfaitement.
+
 ---
 
 ## 🚀 Installation dans le Navigateur (Chrome, Brave, Edge, Opera)

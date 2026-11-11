@@ -1,158 +1,181 @@
 /* ==========================================================================
-   PixPilot - Style Console CMD & Ancien ChatGPT (Minimaliste, Monospace, Épuré)
-   Zéro néon. Inspiré du terminal CMD classique et du streaming original ChatGPT.
+   PixPilot — Modern Terminal UI
+   Design moderne épuré avec ADN console (prompts >_, accents monospace, zéro blabla)
    ========================================================================== */
 
 :root {
-  --pp-bg-base: #0c0d10;
-  --pp-bg-surface: #131418;
-  --pp-bg-elevated: #1a1c22;
-  --pp-bg-subtle: #24262e;
-  --pp-border: #272a32;
-  --pp-border-hover: #3f424e;
-  --pp-border-accent: rgba(16, 185, 129, 0.4);
-  
-  --pp-text-main: #f4f4f5;
-  --pp-text-secondary: #a1a1aa;
-  --pp-text-muted: #71717a;
-  
-  --pp-terminal-green: #10b981;
-  --pp-terminal-cyan: #38bdf8;
-  --pp-terminal-yellow: #f59e0b;
-  --pp-terminal-gray: #52525b;
-  
-  --pp-font-mono: "Consolas", "SFMono-Regular", "Liberation Mono", Menlo, Monaco, "Courier New", monospace;
-  --pp-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
-  
-  --pp-radius-sm: 4px;
-  --pp-radius-md: 8px;
-  --pp-radius-lg: 12px;
+  --pp-bg-base: rgba(11, 13, 17, 0.94);
+  --pp-bg-solid: #0b0d11;
+  --pp-bg-surface: #11141b;
+  --pp-bg-elevated: #171b24;
+  --pp-bg-hover: #1f2430;
+  --pp-bg-input: #080a0e;
+
+  --pp-border: rgba(255, 255, 255, 0.08);
+  --pp-border-hover: rgba(255, 255, 255, 0.16);
+  --pp-border-accent: rgba(16, 185, 129, 0.38);
+
+  --pp-text-main: #f3f4f6;
+  --pp-text-secondary: #9ca3af;
+  --pp-text-muted: #64748b;
+
+  --pp-accent: #10b981;
+  --pp-accent-soft: rgba(16, 185, 129, 0.12);
+  --pp-accent-glow: rgba(16, 185, 129, 0.22);
+  --pp-danger: #ef4444;
+  --pp-warning: #f59e0b;
+
+  --pp-font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --pp-font-mono: "JetBrains Mono", "Fira Code", "Cascadia Code", "Consolas", "SFMono-Regular", Menlo, monospace;
+
+  --pp-radius-xs: 4px;
+  --pp-radius-sm: 6px;
+  --pp-radius-md: 10px;
+  --pp-radius-lg: 14px;
   --pp-radius-full: 9999px;
-  
-  --pp-shadow-floating: 0 16px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--pp-border);
-  --pp-shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
+
+  --pp-shadow-panel: 0 24px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--pp-border), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --pp-shadow-fab: 0 10px 30px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--pp-border), inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 /* --------------------------------------------------------------------------
-   Barre de Défilement Console (Custom Scrollbar Sombre & Épurée)
-   Élimine la barre blanche native de Windows et s'accorde au thème CMD.
+   Scrollbar
    -------------------------------------------------------------------------- */
 #pixpilot-root,
 #pixpilot-root *,
 #pixpilot-panel,
 #pixpilot-panel * {
   scrollbar-width: thin;
-  scrollbar-color: #272a32 transparent;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+  box-sizing: border-box;
 }
 
 #pixpilot-root ::-webkit-scrollbar,
 #pixpilot-panel ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 
 #pixpilot-root ::-webkit-scrollbar-track,
 #pixpilot-panel ::-webkit-scrollbar-track {
-  background: #0c0d10;
+  background: transparent;
 }
 
 #pixpilot-root ::-webkit-scrollbar-thumb,
 #pixpilot-panel ::-webkit-scrollbar-thumb {
-  background: #272a32;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 99px;
 }
 
 #pixpilot-root ::-webkit-scrollbar-thumb:hover,
 #pixpilot-panel ::-webkit-scrollbar-thumb:hover {
-  background: #3f424e;
-}
-
-#pixpilot-root ::-webkit-scrollbar-thumb:active,
-#pixpilot-panel ::-webkit-scrollbar-thumb:active {
-  background: #10b981;
-}
-
-#pixpilot-root ::-webkit-scrollbar-corner,
-#pixpilot-panel ::-webkit-scrollbar-corner {
-  background: transparent;
+  background: rgba(255, 255, 255, 0.25);
 }
 
 /* --------------------------------------------------------------------------
-   Bouton Flottant (Pill Minimaliste Style Console)
+   Bouton Flottant (FAB)
    -------------------------------------------------------------------------- */
 #pixpilot-fab {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
+  bottom: 22px;
+  right: 22px;
   z-index: 2147483640;
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background-color: var(--pp-bg-surface);
+  background: var(--pp-bg-base);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   color: var(--pp-text-main);
-  border: 1px solid var(--pp-border);
-  border-radius: var(--pp-radius-sm);
-  box-shadow: var(--pp-shadow-floating);
+  border-radius: var(--pp-radius-full);
+  box-shadow: var(--pp-shadow-fab);
   cursor: pointer;
   user-select: none;
-  font-family: var(--pp-font-mono);
-  font-size: 12px;
+  font-family: var(--pp-font-sans);
+  font-size: 12.5px;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  transition: all 0.15s ease;
+  letter-spacing: -0.01em;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, background 0.15s ease;
 }
 
 #pixpilot-fab:hover {
-  background-color: var(--pp-bg-elevated);
-  border-color: var(--pp-border-hover);
-  transform: translateY(-1px);
+  background: var(--pp-bg-elevated);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.65), 0 0 0 1px var(--pp-border-accent);
+}
+
+#pixpilot-fab:active {
+  transform: translateY(0) scale(0.98);
 }
 
 #pixpilot-fab .fab-icon {
-  color: var(--pp-terminal-green);
-  font-weight: bold;
+  font-family: var(--pp-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pp-accent);
+  background: var(--pp-accent-soft);
+  padding: 2px 6px;
+  border-radius: var(--pp-radius-xs);
+  line-height: 1.2;
 }
 
-#pixpilot-fab .fab-badge {
-  font-size: 10px;
-  padding: 1px 5px;
-  background: var(--pp-bg-base);
-  border: 1px solid var(--pp-border);
-  border-radius: 2px;
-  color: var(--pp-terminal-green);
+#pixpilot-fab .fab-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--pp-accent);
+  box-shadow: 0 0 8px var(--pp-accent);
 }
 
 /* --------------------------------------------------------------------------
-   Fenêtre Console Principale (Style CMD / ChatGPT Ancien)
+   Fenêtre Principale
    -------------------------------------------------------------------------- */
 #pixpilot-panel {
   position: fixed;
-  bottom: 24px;
-  right: 24px;
-  width: 460px;
-  max-width: calc(100vw - 32px);
-  height: 640px;
-  max-height: calc(100vh - 48px);
+  bottom: 22px;
+  right: 22px;
+  width: 420px;
+  max-width: calc(100vw - 28px);
+  height: 540px;
+  max-height: calc(100vh - 44px);
   z-index: 2147483646;
-  background-color: var(--pp-bg-base);
-  border: 1px solid var(--pp-border);
-  border-radius: var(--pp-radius-md);
-  box-shadow: var(--pp-shadow-floating);
+  background: var(--pp-bg-base);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-radius: var(--pp-radius-lg);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), 0 0 24px rgba(16, 185, 129, 0.06), 0 0 0 1px var(--pp-border), inset 0 1px 0 rgba(255, 255, 255, 0.07);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  font-family: var(--pp-font-mono);
+  font-family: var(--pp-font-sans);
   color: var(--pp-text-main);
   opacity: 0;
-  transform: translateY(12px) scale(0.99);
+  transform: translateY(10px) scale(0.98);
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-  box-sizing: border-box;
+  transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-#pixpilot-panel * {
-  box-sizing: border-box;
+#pixpilot-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(18, 22, 31, 0) 50%, rgba(0, 0, 0, 0.22) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.012), rgba(0, 255, 0, 0.008), rgba(0, 0, 255, 0.012));
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+  opacity: 0.25;
+  z-index: 1;
+}
+
+.pp-header,
+.pp-quick-bar,
+.pp-attachments-container,
+.pp-body,
+.pp-footer,
+.pp-settings-modal,
+.pp-image-preview-modal {
+  position: relative;
+  z-index: 2;
 }
 
 #pixpilot-panel.is-open {
@@ -162,52 +185,133 @@
 }
 
 /* --------------------------------------------------------------------------
-   Barre de Titre Console CMD
+   Header (Draggable + Compact CMD Terminal)
    -------------------------------------------------------------------------- */
 .pp-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background-color: var(--pp-bg-surface);
+  background: rgba(14, 17, 23, 0.85);
   border-bottom: 1px solid var(--pp-border);
   user-select: none;
+  cursor: grab;
+}
+
+.pp-header:active {
+  cursor: grabbing;
+}
+
+.pp-term-dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 4px;
+}
+
+.pp-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0.85;
+  transition: opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pp-dot:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+.pp-dot.red {
+  background: #ff5f56;
+  box-shadow: 0 0 6px rgba(255, 95, 86, 0.45);
+}
+
+.pp-dot.yellow {
+  background: #ffbd2e;
+  box-shadow: 0 0 6px rgba(255, 189, 46, 0.45);
+}
+
+.pp-dot.green {
+  background: #27c93f;
+  box-shadow: 0 0 6px rgba(39, 201, 63, 0.45);
 }
 
 .pp-brand {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex: 1;
+  margin-left: 4px;
 }
 
-.pp-console-dots {
-  display: flex;
-  align-items: center;
-  gap: 5px;
+.pp-term-user {
+  font-family: var(--pp-font-mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--pp-accent);
+  letter-spacing: -0.01em;
 }
 
-.pp-console-dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background-color: var(--pp-terminal-gray);
+.pp-brand-prompt {
+  font-family: var(--pp-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--pp-accent);
+  background: var(--pp-accent-soft);
+  border: 1px solid var(--pp-border-accent);
+  padding: 2px 6px;
+  border-radius: var(--pp-radius-xs);
+  line-height: 1.2;
 }
 
 .pp-title {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--pp-text-main);
   margin: 0;
-  letter-spacing: 0.03em;
+  letter-spacing: -0.01em;
 }
 
 .pp-model-tag {
-  font-size: 10px;
-  padding: 2px 6px;
-  background: var(--pp-bg-base);
+  font-family: var(--pp-font-mono);
+  font-size: 10.5px;
+  padding: 2px 7px;
+  background: var(--pp-bg-elevated);
   border: 1px solid var(--pp-border);
-  border-radius: 3px;
-  color: var(--pp-terminal-green);
+  border-radius: var(--pp-radius-full);
+  color: var(--pp-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pp-model-tag:hover {
+  color: var(--pp-text-main);
+  border-color: var(--pp-border-hover);
+}
+
+.pp-shield-tag {
+  font-family: var(--pp-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  background: var(--pp-accent-soft);
+  border: 1px solid var(--pp-border-accent);
+  border-radius: var(--pp-radius-full);
+  color: var(--pp-accent);
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.pp-shield-tag:hover {
+  background: var(--pp-accent-glow);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.25);
+  border-color: var(--pp-accent);
 }
 
 .pp-header-actions {
@@ -222,13 +326,11 @@
   color: var(--pp-text-secondary);
   width: 26px;
   height: 26px;
-  border-radius: 3px;
+  border-radius: var(--pp-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  font-family: var(--pp-font-mono);
-  font-size: 13px;
   transition: all 0.15s ease;
 }
 
@@ -239,59 +341,80 @@
 }
 
 /* --------------------------------------------------------------------------
-   Barre de Commandes Rapides
+   Barre d'Actions Rapides
    -------------------------------------------------------------------------- */
 .pp-quick-bar {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
   gap: 6px;
-  padding: 8px 14px;
-  background: var(--pp-bg-surface);
+  padding: 8px 12px;
+  background: rgba(17, 20, 27, 0.45);
   border-bottom: 1px solid var(--pp-border);
 }
 
 .pp-btn-pill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  font-size: 11px;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 11.5px;
   font-weight: 500;
-  font-family: var(--pp-font-mono);
-  color: var(--pp-text-main);
+  font-family: var(--pp-font-sans);
+  color: var(--pp-text-secondary);
   background: var(--pp-bg-elevated);
   border: 1px solid var(--pp-border);
-  border-radius: 3px;
+  border-radius: var(--pp-radius-sm);
   cursor: pointer;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
-.pp-btn-pill:hover {
-  background: var(--pp-bg-subtle);
+.pp-btn-pill svg {
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+.pp-btn-pill:hover:not(:disabled) {
+  background: var(--pp-bg-hover);
+  color: var(--pp-text-main);
   border-color: var(--pp-border-hover);
 }
 
-.pp-btn-pill.primary {
-  background: var(--pp-bg-base);
-  color: var(--pp-terminal-green);
-  border-color: var(--pp-border-accent);
+.pp-btn-pill:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 
-.pp-btn-pill.primary:hover {
-  background: rgba(16, 185, 129, 0.1);
+.pp-btn-pill.primary {
+  background: var(--pp-accent-soft);
+  color: var(--pp-accent);
+  border-color: var(--pp-border-accent);
+  font-weight: 600;
+}
+
+.pp-btn-pill.primary:hover:not(:disabled) {
+  background: rgba(16, 185, 129, 0.2);
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.12);
+}
+
+.pp-btn-pill span {
+  font-family: var(--pp-font-mono);
+  font-size: 11px;
+  letter-spacing: -0.01em;
 }
 
 /* --------------------------------------------------------------------------
-   Fichiers Attachés (Chips Style Terminal)
+   Fichiers Attachés (Chips)
    -------------------------------------------------------------------------- */
 .pp-attachments-container {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  padding: 8px 14px;
-  background: var(--pp-bg-surface);
+  padding: 7px 12px;
+  background: rgba(17, 20, 27, 0.6);
   border-bottom: 1px solid var(--pp-border);
-  max-height: 85px;
+  max-height: 76px;
   overflow-y: auto;
 }
 
@@ -304,13 +427,13 @@
   align-items: center;
   gap: 6px;
   padding: 3px 8px;
-  background: var(--pp-bg-base);
+  background: var(--pp-bg-elevated);
   border: 1px solid var(--pp-border);
-  border-radius: 3px;
+  border-radius: var(--pp-radius-sm);
   font-size: 11px;
   font-family: var(--pp-font-mono);
   color: var(--pp-text-secondary);
-  max-width: 220px;
+  max-width: 200px;
   transition: all 0.15s ease;
 }
 
@@ -319,28 +442,16 @@
 }
 
 .pp-file-chip.has-preview:hover {
-  border-color: var(--pp-terminal-green);
-  background: var(--pp-bg-elevated);
+  border-color: var(--pp-border-accent);
+  color: var(--pp-text-main);
 }
 
 .pp-file-chip-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 2px;
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
   object-fit: cover;
-  border: 1px solid var(--pp-border);
   flex-shrink: 0;
-}
-
-.pp-file-chip-zoom {
-  font-size: 10px;
-  opacity: 0.6;
-  margin-left: 2px;
-  transition: opacity 0.15s ease;
-}
-
-.pp-file-chip:hover .pp-file-chip-zoom {
-  opacity: 1;
 }
 
 .pp-file-chip-name {
@@ -353,249 +464,299 @@
 .pp-file-chip-remove {
   cursor: pointer;
   color: var(--pp-text-muted);
-  font-size: 12px;
+  font-size: 13px;
+  line-height: 1;
+  padding-left: 2px;
 }
 
 .pp-file-chip-remove:hover {
-  color: #ef4444;
+  color: var(--pp-danger);
 }
 
 /* --------------------------------------------------------------------------
-   Corps de la Console (Zone d'affichage des résultats)
+   Zone de Résultats (Body)
    -------------------------------------------------------------------------- */
 .pp-body {
   flex: 1;
   overflow-y: auto;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  background: var(--pp-bg-base);
-}
-
-/* Message d'accueil style console */
-.pp-empty-state {
-  margin: auto;
-  text-align: left;
-  max-width: 360px;
-  color: var(--pp-text-secondary);
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 16px;
-  border: 1px dashed var(--pp-border);
-  border-radius: 4px;
 }
 
-.pp-empty-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--pp-terminal-green);
+/* Empty State Terminal Moderne */
+.pp-empty-state {
+  margin: auto;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--pp-text-muted);
+  text-align: center;
+  user-select: none;
+}
+
+.pp-term-hero {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 6px;
+  padding: 12px 18px;
+  background: rgba(17, 20, 27, 0.7);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+  border-radius: var(--pp-radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 
-.pp-empty-desc {
-  font-size: 11px;
-  line-height: 1.6;
+.pp-term-hero-prompt {
+  font-family: var(--pp-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pp-accent);
+  letter-spacing: 0.02em;
+}
+
+.pp-term-hero-sub {
+  font-family: var(--pp-font-mono);
+  font-size: 10.5px;
   color: var(--pp-text-muted);
 }
 
+.pp-cursor-blink {
+  display: inline-block;
+  color: var(--pp-accent);
+  font-weight: 700;
+  animation: pp-cmd-blink 0.9s step-start infinite;
+}
+
+.pp-empty-shortcuts {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--pp-font-mono);
+  font-size: 11px;
+  color: var(--pp-text-secondary);
+}
+
+.pp-kbd {
+  background: var(--pp-bg-elevated);
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-radius-xs);
+  padding: 2px 7px;
+  font-family: var(--pp-font-mono);
+  font-size: 10px;
+  color: var(--pp-text-main);
+}
+
+/* Alerte fichier tableur/archive non lu */
+.pp-file-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-left: 3px solid var(--pp-warning);
+  border-radius: var(--pp-radius-xs);
+  font-size: 11px;
+  color: #fbbf24;
+  font-family: var(--pp-font-mono);
+  line-height: 1.4;
+  animation: pp-slide-in 0.18s ease;
+}
+
+.pp-file-alert strong {
+  color: #ffffff;
+}
+
 /* --------------------------------------------------------------------------
-   Résultat Console CMD / Ancien ChatGPT
+   Carte de Résultat (Moderne + Terminal)
    -------------------------------------------------------------------------- */
 .pp-result-card {
   background: var(--pp-bg-surface);
   border: 1px solid var(--pp-border);
-  border-radius: 4px;
-  padding: 12px;
+  border-radius: var(--pp-radius-md);
+  padding: 11px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  box-shadow: var(--pp-shadow-card);
+  gap: 9px;
+  animation: pp-slide-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.pp-console-cmdline {
-  font-size: 11px;
-  color: var(--pp-text-muted);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--pp-border);
+@keyframes pp-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.pp-console-cmdline .prompt {
-  color: var(--pp-terminal-green);
-  font-weight: bold;
-}
-
-/* Encart Réponse Détectée (Style Terminal Box) */
-.pp-answer-banner {
-  background: var(--pp-bg-base);
-  border: 1px solid var(--pp-border-accent);
-  border-radius: 4px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.pp-answer-header {
+.pp-card-meta {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
 }
 
-.pp-answer-label {
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--pp-terminal-green);
-  display: flex;
+.pp-cmd-tag {
+  font-family: var(--pp-font-mono);
+  font-size: 10.5px;
+  color: var(--pp-text-muted);
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
+}
+
+.pp-cmd-tag .prompt {
+  color: var(--pp-accent);
+  font-weight: 700;
 }
 
 .pp-header-actions-group {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 
-/* Boutons Terminal [ COPIER ] & [ APPLIQUER ] */
-.pp-btn-terminal-action {
+/* Boutons d'action sur les réponses */
+.pp-btn-action {
   font-size: 11px;
-  font-family: var(--pp-font-mono);
-  font-weight: 600;
-  background: var(--pp-bg-surface);
+  font-family: var(--pp-font-sans);
+  font-weight: 500;
+  background: var(--pp-bg-elevated);
   border: 1px solid var(--pp-border);
-  color: var(--pp-text-main);
-  padding: 4px 9px;
-  border-radius: 3px;
+  color: var(--pp-text-secondary);
+  padding: 4px 8px;
+  border-radius: var(--pp-radius-xs);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
-.pp-btn-terminal-action:hover {
-  background: var(--pp-bg-elevated);
+.pp-btn-action:hover {
+  background: var(--pp-bg-hover);
+  color: var(--pp-text-main);
   border-color: var(--pp-border-hover);
 }
 
-.pp-btn-terminal-action.primary {
-  color: var(--pp-terminal-green);
+.pp-btn-action.primary {
+  background: var(--pp-accent-soft);
+  color: var(--pp-accent);
   border-color: var(--pp-border-accent);
 }
 
-.pp-btn-terminal-action.primary:hover {
-  background: rgba(16, 185, 129, 0.12);
+.pp-btn-action.primary:hover {
+  background: rgba(16, 185, 129, 0.2);
 }
 
-/* Réponse Unique */
+/* Boîte de réponse unique */
 .pp-single-answer-box {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  background: #08090b;
+  background: var(--pp-bg-input);
   border: 1px solid var(--pp-border);
-  border-radius: 3px;
-  padding: 10px 12px;
+  border-left: 2px solid var(--pp-accent);
+  border-radius: var(--pp-radius-sm);
+  padding: 9px 11px;
 }
 
 .pp-answer-text {
   font-family: var(--pp-font-mono);
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   color: #ffffff;
   word-break: break-word;
   user-select: all;
-  letter-spacing: 0.02em;
+  cursor: pointer;
+  line-height: 1.4;
 }
 
-.pp-answer-text::before {
-  content: "> ";
-  color: var(--pp-terminal-green);
-}
-
-/* Réponses Multiples */
+/* Grille de réponses multiples */
 .pp-multi-answers-grid {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .pp-answer-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  background: #08090b;
+  gap: 8px;
+  background: var(--pp-bg-input);
   border: 1px solid var(--pp-border);
-  border-radius: 3px;
-  padding: 8px 10px;
+  border-left: 2px solid var(--pp-accent);
+  border-radius: var(--pp-radius-sm);
+  padding: 7px 10px;
+  transition: border-color 0.15s ease;
 }
 
 .pp-answer-item:hover {
   border-color: var(--pp-border-hover);
+  border-left-color: var(--pp-accent);
 }
 
 .pp-answer-item-text {
+  font-family: var(--pp-font-mono);
   font-size: 12px;
   font-weight: 500;
   color: var(--pp-text-main);
   word-break: break-word;
+  cursor: pointer;
+  line-height: 1.4;
 }
 
-.pp-answer-item-text::before {
-  content: "> ";
-  color: var(--pp-terminal-green);
-}
-
-/* --------------------------------------------------------------------------
-   Explication & Animation d'Écriture (Ancien ChatGPT Typewriter)
-   -------------------------------------------------------------------------- */
-.pp-explanation-section {
-  font-size: 12px;
-  line-height: 1.6;
-  color: #d4d4d8;
+.pp-answer-index {
   font-family: var(--pp-font-mono);
-  padding-top: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--pp-accent);
+  background: var(--pp-accent-soft);
+  border: 1px solid var(--pp-border-accent);
+  padding: 1px 6px;
+  border-radius: var(--pp-radius-xs);
+  flex-shrink: 0;
+  line-height: 1.3;
 }
 
-.pp-explanation-title {
-  font-size: 10px;
-  font-weight: 600;
-  text-transform: uppercase;
-  color: var(--pp-text-muted);
-  letter-spacing: 0.05em;
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
+/* Note / Explication courte (masquée si vide) */
+.pp-explanation-section {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--pp-text-secondary);
+  font-family: var(--pp-font-sans);
+  padding: 6px 9px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--pp-radius-xs);
+  border-left: 2px solid rgba(255, 255, 255, 0.12);
+}
+
+.pp-explanation-section.is-empty {
+  display: none;
 }
 
 .pp-typewriter-text {
-  position: relative;
   word-break: break-word;
   white-space: pre-wrap;
-  color: #e4e4e7;
 }
 
-/* Curseur Bloc Monospace Authentique Style CMD / ChatGPT Original */
 .pp-cursor {
   display: inline-block;
-  width: 8px;
-  height: 14px;
-  background-color: var(--pp-terminal-green);
-  margin-left: 2px;
-  vertical-align: -2px;
-  animation: pp-cmd-blink 0.75s step-start infinite;
+  width: 6px;
+  height: 12px;
+  background-color: var(--pp-accent);
+  margin-left: 3px;
+  vertical-align: -1px;
+  animation: pp-cmd-blink 0.8s step-start infinite;
 }
 
 @keyframes pp-cmd-blink {
@@ -606,24 +767,47 @@
 .pp-explanation-section code {
   font-family: var(--pp-font-mono);
   font-size: 11px;
-  background: #08090b;
+  background: var(--pp-bg-input);
   border: 1px solid var(--pp-border);
-  padding: 1px 4px;
-  border-radius: 2px;
-  color: var(--pp-terminal-green);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--pp-accent);
 }
 
 .pp-explanation-section strong {
-  color: #ffffff;
+  color: var(--pp-text-main);
   font-weight: 600;
 }
 
+/* Loader minimaliste */
+.pp-loading-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--pp-font-mono);
+  font-size: 11.5px;
+  color: var(--pp-text-secondary);
+}
+
+.pp-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(16, 185, 129, 0.25);
+  border-top-color: var(--pp-accent);
+  border-radius: 50%;
+  animation: pp-spin 0.7s linear infinite;
+}
+
+@keyframes pp-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* --------------------------------------------------------------------------
-   Zone Inférieure de Saisie Console (Prompt CMD)
+   Footer (Input Prompt CMD Moderne)
    -------------------------------------------------------------------------- */
 .pp-footer {
-  padding: 10px 14px;
-  background: var(--pp-bg-surface);
+  padding: 9px 12px;
+  background: rgba(17, 20, 27, 0.75);
   border-top: 1px solid var(--pp-border);
   display: flex;
   flex-direction: column;
@@ -633,21 +817,24 @@
 .pp-input-row {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: var(--pp-bg-base);
+  gap: 8px;
+  background: var(--pp-bg-input);
   border: 1px solid var(--pp-border);
-  border-radius: 3px;
-  padding: 6px 10px;
+  border-radius: var(--pp-radius-sm);
+  padding: 5px 6px 5px 10px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .pp-input-row:focus-within {
-  border-color: var(--pp-terminal-green);
+  border-color: var(--pp-border-accent);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
 }
 
 .pp-prompt-symbol {
-  color: var(--pp-terminal-green);
-  font-weight: bold;
-  font-size: 13px;
+  font-family: var(--pp-font-mono);
+  color: var(--pp-accent);
+  font-weight: 700;
+  font-size: 12px;
   user-select: none;
 }
 
@@ -657,12 +844,12 @@
   border: none;
   outline: none;
   color: var(--pp-text-main);
-  font-family: var(--pp-font-mono);
+  font-family: var(--pp-font-sans);
   font-size: 12px;
   line-height: 1.4;
   resize: none;
-  max-height: 80px;
-  min-height: 22px;
+  max-height: 72px;
+  min-height: 20px;
 }
 
 .pp-textarea::placeholder {
@@ -670,30 +857,27 @@
 }
 
 .pp-btn-send {
-  padding: 4px 8px;
+  width: 26px;
   height: 26px;
-  border-radius: 2px;
-  background: var(--pp-bg-elevated);
-  border: 1px solid var(--pp-border);
-  color: var(--pp-terminal-green);
-  font-family: var(--pp-font-mono);
-  font-size: 11px;
-  font-weight: 600;
+  border-radius: var(--pp-radius-xs);
+  background: var(--pp-accent-soft);
+  border: 1px solid var(--pp-border-accent);
+  color: var(--pp-accent);
   cursor: pointer;
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
-.pp-btn-send:hover {
-  background: var(--pp-terminal-green);
-  color: #000000;
+.pp-btn-send:hover:not(:disabled) {
+  background: var(--pp-accent);
+  color: #050608;
 }
 
 .pp-btn-send:disabled {
-  background: var(--pp-bg-base);
-  color: var(--pp-text-muted);
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
@@ -704,24 +888,78 @@
   align-items: center;
   justify-content: space-between;
   font-family: var(--pp-font-mono);
+  padding: 0 2px;
+}
+
+.pp-status-left {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pp-shield-pill {
+  font-family: var(--pp-font-mono);
+  font-size: 9.5px;
+  color: var(--pp-accent);
+  background: var(--pp-accent-soft);
+  border: 1px solid var(--pp-border-accent);
+  padding: 1px 6px;
+  border-radius: var(--pp-radius-full);
+  cursor: pointer;
+  user-select: none;
+}
+
+.pp-shield-pill:hover {
+  background: var(--pp-accent-glow);
+}
+
+.pp-status-led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--pp-accent);
+  box-shadow: 0 0 8px var(--pp-accent);
+  display: inline-block;
+  transition: all 0.2s ease;
+}
+
+.pp-status-led.working {
+  background: var(--pp-warning);
+  box-shadow: 0 0 10px var(--pp-warning);
+  animation: pp-led-pulse 0.9s ease-in-out infinite alternate;
+}
+
+@keyframes pp-led-pulse {
+  0% { transform: scale(0.85); opacity: 0.55; }
+  100% { transform: scale(1.3); opacity: 1; }
+}
+
+.pp-shortcuts-tag {
+  font-family: var(--pp-font-mono);
+  font-size: 10px;
+  color: var(--pp-text-muted);
+  background: var(--pp-bg-elevated);
+  border: 1px solid var(--pp-border);
+  padding: 1px 5px;
+  border-radius: var(--pp-radius-xs);
 }
 
 /* --------------------------------------------------------------------------
-   Modal Paramètres (Style Boîte Console)
+   Modal Paramètres
    -------------------------------------------------------------------------- */
 .pp-settings-modal {
   position: absolute;
   inset: 0;
-  background: var(--pp-bg-base);
-  z-index: 10;
-  padding: 18px;
+  background: rgba(11, 13, 17, 0.96);
+  backdrop-filter: blur(16px);
+  z-index: 20;
+  padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 14px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease;
-  font-family: var(--pp-font-mono);
 }
 
 .pp-settings-modal.is-active {
@@ -736,7 +974,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--pp-border);
 }
 
@@ -746,83 +984,132 @@
   gap: 6px;
 }
 
+.pp-shield-box {
+  background: var(--pp-bg-surface);
+  border: 1px solid var(--pp-border-accent);
+  border-radius: var(--pp-radius-md);
+  padding: 10px 12px;
+}
+
+.pp-shield-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pp-shield-icon-lg {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.pp-shield-desc {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pp-shield-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--pp-text-main);
+  font-family: var(--pp-font-sans);
+}
+
+.pp-shield-sub {
+  font-size: 10px;
+  color: var(--pp-text-muted);
+  line-height: 1.35;
+}
+
+.pp-shield-badge-active {
+  font-family: var(--pp-font-mono);
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--pp-accent);
+  background: var(--pp-accent-soft);
+  border: 1px solid var(--pp-border-accent);
+  padding: 2px 7px;
+  border-radius: var(--pp-radius-full);
+}
+
+.pp-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
 .pp-label {
   font-size: 11px;
   font-weight: 500;
   color: var(--pp-text-secondary);
 }
 
-.pp-input-text {
-  background: var(--pp-bg-surface);
-  border: 1px solid var(--pp-border);
-  border-radius: 3px;
-  padding: 6px 10px;
-  color: var(--pp-text-main);
-  font-size: 12px;
-  outline: none;
+.pp-link-subtle {
+  font-size: 10.5px;
   font-family: var(--pp-font-mono);
-}
-
-.pp-input-text:focus {
-  border-color: var(--pp-terminal-green);
-}
-
-.pp-select {
-  background: var(--pp-bg-surface);
-  border: 1px solid var(--pp-border);
-  border-radius: 3px;
-  padding: 6px 10px;
-  color: var(--pp-text-main);
-  font-size: 12px;
-  outline: none;
-  font-family: var(--pp-font-mono);
-  cursor: pointer;
-}
-
-.pp-help-text {
-  font-size: 10px;
-  color: var(--pp-text-muted);
-}
-
-.pp-help-text a {
-  color: var(--pp-terminal-green);
+  color: var(--pp-accent);
   text-decoration: none;
 }
 
-.pp-btn-save {
-  padding: 8px 14px;
-  background: var(--pp-bg-elevated);
-  border: 1px solid var(--pp-border-accent);
-  border-radius: 3px;
-  color: var(--pp-terminal-green);
+.pp-link-subtle:hover {
+  text-decoration: underline;
+}
+
+.pp-input-text,
+.pp-select {
+  background: var(--pp-bg-surface);
+  border: 1px solid var(--pp-border);
+  border-radius: var(--pp-radius-sm);
+  padding: 8px 10px;
+  color: var(--pp-text-main);
+  font-size: 12px;
+  outline: none;
   font-family: var(--pp-font-mono);
+  transition: border-color 0.15s ease;
+}
+
+.pp-input-text:focus,
+.pp-select:focus {
+  border-color: var(--pp-accent);
+}
+
+.pp-btn-save {
+  padding: 9px 14px;
+  background: var(--pp-accent);
+  border: none;
+  border-radius: var(--pp-radius-sm);
+  color: #06080b;
+  font-family: var(--pp-font-sans);
   font-weight: 600;
   font-size: 12px;
   cursor: pointer;
-  transition: all 0.15s ease;
-  margin-top: 6px;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+  margin-top: auto;
 }
 
 .pp-btn-save:hover {
-  background: var(--pp-terminal-green);
-  color: #000000;
+  opacity: 0.92;
+}
+
+.pp-btn-save:active {
+  transform: scale(0.99);
 }
 
 /* --------------------------------------------------------------------------
-   Modal Visualiseur de Capture d'Écran (Image Preview Lightbox)
+   Modal Visualiseur d'Image
    -------------------------------------------------------------------------- */
 .pp-image-preview-modal {
   position: absolute;
   inset: 0;
-  background: rgba(12, 13, 16, 0.94);
-  backdrop-filter: blur(8px);
+  background: rgba(8, 10, 14, 0.95);
+  backdrop-filter: blur(12px);
   z-index: 30;
   display: flex;
   flex-direction: column;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease;
-  font-family: var(--pp-font-mono);
+  transition: opacity 0.18s ease;
 }
 
 .pp-image-preview-modal.is-active {
@@ -838,33 +1125,25 @@
   background: var(--pp-bg-surface);
   border-bottom: 1px solid var(--pp-border);
   font-size: 11px;
-  color: var(--pp-terminal-green);
-  font-weight: 600;
+  font-family: var(--pp-font-mono);
+  color: var(--pp-text-secondary);
 }
 
 .pp-preview-body {
   flex: 1;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 14px;
+  padding: 12px;
   overflow: auto;
-  gap: 10px;
 }
 
 .pp-preview-body img {
   max-width: 100%;
-  max-height: 85%;
+  max-height: 100%;
   object-fit: contain;
-  border-radius: 4px;
+  border-radius: var(--pp-radius-sm);
   border: 1px solid var(--pp-border);
-  background: #ffffff; /* Fond blanc neutre pour bien lire le quiz Pix */
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
+  background: #ffffff;
   cursor: zoom-out;
-}
-
-.pp-preview-hint {
-  font-size: 10px;
-  color: var(--pp-text-muted);
 }

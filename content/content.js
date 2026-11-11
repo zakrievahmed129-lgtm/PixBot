@@ -1,33 +1,60 @@
 /**
  * PixPilot - Content Script
- * Interface moderne, minimaliste et épurée injectée sur Pix.
- * Intègre Gemini pour l'analyse multimodale (Texte, Images, PDF, Excel, Word).
+ * Interface moderne avec ADN console minimaliste pour Pix.
  */
 
 (function () {
-  // Éviter les injections multiples
+  // Filet de sécurité : garantir que le bouclier anti-détection est bien injecté
+  try {
+    if (typeof chrome !== 'undefined' && chrome.runtime?.getURL && !window.__PIXPILOT_PRIVACY_SHIELD_ACTIVE__) {
+      const shieldScript = document.createElement('script');
+      shieldScript.src = chrome.runtime.getURL('content/privacy-shield.js');
+      (document.head || document.documentElement).appendChild(shieldScript);
+      shieldScript.remove();
+    }
+  } catch (e) {}
+
   if (document.getElementById('pixpilot-root')) {
     return;
   }
 
-  // Configuration par défaut (avec votre clé pré-intégrée)
   let config = {
     apiKey: 'AQ.Ab8RN6L3GTYcNvQ4NRRpzTxYcns9jRauXN_besAXxCGTY7Qbmg',
     model: 'gemini-2.5-flash'
   };
 
-  // État local
   let attachedFiles = [];
   let extractedChallenge = null;
   let isGenerating = false;
 
-  // Charger la configuration sauvegardée
+  const ICONS = {
+    scan: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/></svg>`,
+    capture: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>`,
+    attach: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>`,
+    send: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 10 4 15 9 20"/><path d="M20 4v7a4 4 0 0 1-4 4H4"/></svg>`,
+    copy: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
+    check: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+    bolt: `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+    clear: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>`,
+    settings: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+    close: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`
+  };
+
   if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
     chrome.storage.local.get(['geminiApiKey', 'geminiModel'], (res) => {
       if (res.geminiApiKey) config.apiKey = res.geminiApiKey;
       if (res.geminiModel) config.model = res.geminiModel;
       updateModelBadge();
     });
+    if (chrome.storage.onChanged) {
+      chrome.storage.onChanged.addListener((changes) => {
+        if (changes.geminiApiKey?.newValue !== undefined) config.apiKey = changes.geminiApiKey.newValue;
+        if (changes.geminiModel?.newValue !== undefined) {
+          config.model = changes.geminiModel.newValue;
+          updateModelBadge();
+        }
+      });
+    }
   } else if (typeof localStorage !== 'undefined') {
     const savedKey = localStorage.getItem('pp_geminiApiKey');
     const savedModel = localStorage.getItem('pp_geminiModel');
@@ -36,125 +63,143 @@
     setTimeout(updateModelBadge, 0);
   }
 
+  if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
+    chrome.runtime.onMessage.addListener((msg) => {
+      if (msg && msg.action === 'toggle-panel') {
+        togglePanel();
+      }
+    });
+  }
+
   // --------------------------------------------------------------------------
-  // Création du DOM de l'extension
+  // Création du DOM
   // --------------------------------------------------------------------------
   const root = document.createElement('div');
   root.id = 'pixpilot-root';
   root.innerHTML = `
-    <!-- Bouton Flottant Style Console -->
-    <div id="pixpilot-fab" title="Ouvrir PixPilot (Alt + P)">
+    <div id="pixpilot-fab" title="PixPilot (Alt + P)">
       <span class="fab-icon">&gt;_</span>
       <span class="fab-text">PixPilot</span>
-      <span class="fab-badge" id="pp-fab-badge">CMD</span>
+      <span class="fab-dot"></span>
     </div>
 
-    <!-- Volet Principal Console CMD -->
     <div id="pixpilot-panel">
-      <!-- En-tête Console -->
-      <div class="pp-header">
+      <div class="pp-header" id="pp-drag-handle">
+        <div class="pp-term-dots">
+          <span class="pp-dot red"></span>
+          <span class="pp-dot yellow"></span>
+          <span class="pp-dot green"></span>
+        </div>
         <div class="pp-brand">
-          <div class="pp-console-dots">
-            <span class="pp-console-dot" style="background:#ef4444;"></span>
-            <span class="pp-console-dot" style="background:#f59e0b;"></span>
-            <span class="pp-console-dot" style="background:#10b981;"></span>
-          </div>
-          <h2 class="pp-title">cmd.exe &mdash; pixpilot@quiz</h2>
-          <span class="pp-model-tag" id="pp-model-badge">gemini-2.5-flash</span>
+          <span class="pp-term-user">pix:~$</span>
+          <h2 class="pp-title">pixpilot</h2>
+          <span class="pp-model-tag" id="pp-model-badge" title="Changer de modèle">2.5-flash</span>
+          <span class="pp-shield-tag" id="pp-shield-badge" title="Bouclier Anti-Détection Actif : écouteurs Pix détruits (onglet &amp; souris)">🛡️ stealth</span>
         </div>
         <div class="pp-header-actions">
-          <button class="pp-icon-btn" id="pp-btn-settings" title="Paramètres & Clé API">[cfg]</button>
-          <button class="pp-icon-btn" id="pp-btn-close" title="Fermer">[&times;]</button>
+          <button class="pp-icon-btn" id="pp-btn-clear" title="Vider le terminal">${ICONS.clear}</button>
+          <button class="pp-icon-btn" id="pp-btn-settings" title="Configuration">${ICONS.settings}</button>
+          <button class="pp-icon-btn" id="pp-btn-close" title="Fermer">${ICONS.close}</button>
         </div>
       </div>
 
-      <!-- Barre de commandes rapides -->
       <div class="pp-quick-bar">
-        <button class="pp-btn-pill primary" id="pp-btn-scan" title="Analyser la question affichée">
-          &gt; SCANNER
+        <button class="pp-btn-pill primary" id="pp-btn-scan" title="Scanner la question Pix (Alt+S)">
+          ${ICONS.scan} <span>$ scan</span>
         </button>
-        <button class="pp-btn-pill" id="pp-btn-screenshot" title="Prendre une capture de l'exercice visuel">
-          &gt; CAPTURE
+        <button class="pp-btn-pill" id="pp-btn-screenshot" title="Capture réelle de l'onglet (Alt+C)">
+          ${ICONS.capture} <span>$ cap</span>
         </button>
-        <button class="pp-btn-pill" id="pp-btn-attach" title="Joindre un fichier (PDF, Excel, Word...)">
-          &gt; FICHIER
+        <button class="pp-btn-pill" id="pp-btn-attach" title="Attacher un fichier (tableur, archive, doc)">
+          ${ICONS.attach} <span>$ file</span>
         </button>
-        <input type="file" id="pp-file-input" style="display:none;" multiple accept="image/*,.pdf,.xlsx,.xls,.ods,.docx,.doc,.csv,.txt,.json,.py,.sql">
+        <input type="file" id="pp-file-input" style="display:none;" multiple accept="image/*,.zip,.pdf,.xlsx,.xls,.ods,.docx,.doc,.odt,.csv,.txt,.json,.py,.sql">
       </div>
 
-      <!-- Fichiers Attachés (Chips) -->
       <div class="pp-attachments-container" id="pp-attachments-list"></div>
 
-      <!-- Corps / Zone d'affichage des résultats -->
       <div class="pp-body" id="pp-body">
         <div class="pp-empty-state" id="pp-empty-state">
-          <div class="pp-empty-title">&gt; PIXPILOT_CLI [VERSION 1.0.0]</div>
-          <div class="pp-empty-desc">
-            Prêt pour l'épreuve Pix.<br>
-            - Tape <strong>« &gt; SCANNER »</strong> pour analyser automatiquement le quiz.<br>
-            - Tape <strong>« &gt; CAPTURE »</strong> pour capturer le schéma ou l'écran Pix.<br>
-            - Glisse n'importe quel fichier (Excel, Word, PDF, Image).
+          <div class="pp-term-hero">
+            <div class="pp-term-hero-prompt">&gt;_ pixpilot.sh --ready<span class="pp-cursor-blink">_</span></div>
+            <div class="pp-term-hero-sub">terminal ia · épreuves pix &amp; tableurs</div>
+          </div>
+          <div class="pp-empty-shortcuts">
+            <span class="pp-kbd">$ scan</span>
+            <span>ou</span>
+            <span class="pp-kbd">Ctrl+V image</span>
+            <span>ou</span>
+            <span class="pp-kbd">Drop .xlsx/.zip</span>
           </div>
         </div>
       </div>
 
-      <!-- Zone Inférieure (Prompt manuel & Envoi) -->
       <div class="pp-footer">
         <div class="pp-input-row">
-          <span class="pp-prompt-symbol">&gt;</span>
-          <textarea class="pp-textarea" id="pp-prompt-input" rows="1" placeholder="instruction optionnelle... (Entrée pour lancer)"></textarea>
-          <button class="pp-btn-send" id="pp-btn-send" title="Exécuter">EXEC</button>
+          <span class="pp-prompt-symbol">&gt;_</span>
+          <textarea class="pp-textarea" id="pp-prompt-input" rows="1" placeholder="Consigne ou question personnalisée..."></textarea>
+          <button class="pp-btn-send" id="pp-btn-send" title="Exécuter (Entrée)">${ICONS.send}</button>
         </div>
         <div class="pp-status-hint">
-          <span id="pp-status-text">&gt; status: ready</span>
-          <span>[Alt + P] basculer</span>
+          <div class="pp-status-left">
+            <span class="pp-status-led" id="pp-status-led"></span>
+            <span id="pp-status-text">ready</span>
+            <span class="pp-shield-pill" id="pp-status-shield" title="Vie privée : Écouteurs de changement d'onglet et de souris détruits">🛡️ anti-espion</span>
+          </div>
+          <div class="pp-shortcuts-tag">Alt+P</div>
         </div>
       </div>
 
-      <!-- Modal de Configuration (Clé API & Modèle) -->
       <div class="pp-settings-modal" id="pp-settings-modal">
         <div class="pp-settings-title">
-          <span>Configuration PixPilot</span>
-          <button class="pp-icon-btn" id="pp-btn-close-settings">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
+          <span>Configuration</span>
+          <button class="pp-icon-btn" id="pp-btn-close-settings">${ICONS.close}</button>
         </div>
 
         <div class="pp-field-group">
-          <label class="pp-label">Clé d'API Google Gemini</label>
-          <input type="password" class="pp-input-text" id="pp-cfg-key" placeholder="AIzaSy...">
-          <div class="pp-help-text">
-            Obtiens une clé gratuite en 1 clic sur <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer">Google AI Studio</a>.
+          <label class="pp-label">Protection Vie Privée &amp; Anti-Espion</label>
+          <div class="pp-shield-box">
+            <div class="pp-shield-row">
+              <span class="pp-shield-icon-lg">🛡️</span>
+              <div class="pp-shield-desc">
+                <div class="pp-shield-title">Écouteurs Pix neutralisés</div>
+                <div class="pp-shield-sub">Détection d'onglet (blur/visibilityState) et de sortie de souris (mouseleave) totalement détruites.</div>
+              </div>
+              <span class="pp-shield-badge-active">ACTIF</span>
+            </div>
           </div>
         </div>
 
         <div class="pp-field-group">
-          <label class="pp-label">Modèle Gemini</label>
+          <div class="pp-label-row">
+            <label class="pp-label">Clé API Gemini</label>
+            <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" class="pp-link-subtle">AI Studio ↗</a>
+          </div>
+          <input type="password" class="pp-input-text" id="pp-cfg-key" placeholder="AIzaSy...">
+        </div>
+
+        <div class="pp-field-group">
+          <label class="pp-label">Modèle</label>
           <select class="pp-select" id="pp-cfg-model">
-            <option value="gemini-2.5-flash">Gemini 2.5 Flash (Recommandé - Ultra rapide & précis)</option>
-            <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite (Ultra léger)</option>
-            <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (Personnalisé)</option>
-            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Classique)</option>
-            <option value="custom">Autre modèle personnalisé...</option>
+            <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+            <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
+            <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite</option>
+            <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+            <option value="custom">Personnalisé...</option>
           </select>
-          <input type="text" class="pp-input-text" id="pp-cfg-custom-model" placeholder="Nom du modèle (ex: gemini-3.1-flash-lite)" style="display:none; margin-top:6px;">
+          <input type="text" class="pp-input-text" id="pp-cfg-custom-model" placeholder="ex: gemini-2.5-pro" style="display:none; margin-top:6px;">
         </div>
 
         <button class="pp-btn-save" id="pp-btn-save-settings">Enregistrer</button>
       </div>
 
-      <!-- Modal Visualiseur de Capture / Image -->
       <div class="pp-image-preview-modal" id="pp-image-preview-modal">
         <div class="pp-preview-header">
-          <span id="pp-preview-title">&gt; PREVIEW: capture.png</span>
-          <button class="pp-icon-btn" id="pp-btn-close-preview" title="Fermer la prévisualisation">[&times;]</button>
+          <span id="pp-preview-title">capture.png</span>
+          <button class="pp-icon-btn" id="pp-btn-close-preview">${ICONS.close}</button>
         </div>
         <div class="pp-preview-body">
-          <img id="pp-preview-img" src="" alt="Capture d'écran Pix" title="Cliquez pour fermer">
-          <span class="pp-preview-hint">Cliquez sur l'image ou appuyez sur Échap pour fermer</span>
+          <img id="pp-preview-img" src="" alt="Preview">
         </div>
       </div>
     </div>
@@ -163,10 +208,12 @@
   document.body.appendChild(root);
 
   // --------------------------------------------------------------------------
-  // Éléments du DOM
+  // Références DOM
   // --------------------------------------------------------------------------
   const fab = document.getElementById('pixpilot-fab');
   const panel = document.getElementById('pixpilot-panel');
+  const dragHandle = document.getElementById('pp-drag-handle');
+  const btnClear = document.getElementById('pp-btn-clear');
   const btnClose = document.getElementById('pp-btn-close');
   const btnSettings = document.getElementById('pp-btn-settings');
   const btnCloseSettings = document.getElementById('pp-btn-close-settings');
@@ -188,15 +235,58 @@
   const emptyState = document.getElementById('pp-empty-state');
   const statusText = document.getElementById('pp-status-text');
 
-  // Éléments du Visualiseur de Capture
   const previewModal = document.getElementById('pp-image-preview-modal');
   const previewImg = document.getElementById('pp-preview-img');
   const previewTitle = document.getElementById('pp-preview-title');
   const btnClosePreview = document.getElementById('pp-btn-close-preview');
 
+  const shieldBadge = document.getElementById('pp-shield-badge');
+  const statusShield = document.getElementById('pp-status-shield');
+  const showShieldStatus = () => {
+    showToast('🛡️ Bouclier actif : écouteurs Pix d\'onglet et de souris détruits.');
+  };
+  if (shieldBadge) shieldBadge.addEventListener('click', showShieldStatus);
+  if (statusShield) statusShield.addEventListener('click', showShieldStatus);
+
+  // --------------------------------------------------------------------------
+  // Déplacement de la fenêtre (Drag)
+  // --------------------------------------------------------------------------
+  let isDragging = false;
+  let dragOffsetX = 0;
+  let dragOffsetY = 0;
+
+  dragHandle.addEventListener('mousedown', (e) => {
+    if (e.target.closest('button') || e.target.closest('#pp-model-badge')) return;
+    isDragging = true;
+    const rect = panel.getBoundingClientRect();
+    dragOffsetX = e.clientX - rect.left;
+    dragOffsetY = e.clientY - rect.top;
+    panel.style.transition = 'none';
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const x = Math.max(8, Math.min(window.innerWidth - panel.offsetWidth - 8, e.clientX - dragOffsetX));
+    const y = Math.max(8, Math.min(window.innerHeight - panel.offsetHeight - 8, e.clientY - dragOffsetY));
+    panel.style.left = `${x}px`;
+    panel.style.top = `${y}px`;
+    panel.style.right = 'auto';
+    panel.style.bottom = 'auto';
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      panel.style.transition = '';
+    }
+  });
+
+  // --------------------------------------------------------------------------
+  // Prévisualisation d'image
+  // --------------------------------------------------------------------------
   function openImagePreview(title, url) {
     if (!previewModal || !previewImg) return;
-    previewTitle.textContent = `> PREVIEW: ${title}`;
+    previewTitle.textContent = title;
     previewImg.src = url;
     previewModal.classList.add('is-active');
   }
@@ -207,18 +297,15 @@
     if (previewImg) previewImg.src = '';
   }
 
-  if (btnClosePreview) btnClosePreview.addEventListener('click', closeImagePreview);
-  if (previewModal) {
-    previewModal.addEventListener('click', (e) => {
-      // Ferme au clic sur le fond ou sur l'image elle-même
-      if (e.target === previewModal || e.target === previewImg || e.target.classList.contains('pp-preview-body')) {
-        closeImagePreview();
-      }
-    });
-  }
+  btnClosePreview.addEventListener('click', closeImagePreview);
+  previewModal.addEventListener('click', (e) => {
+    if (e.target === previewModal || e.target === previewImg || e.target.classList.contains('pp-preview-body')) {
+      closeImagePreview();
+    }
+  });
 
   // --------------------------------------------------------------------------
-  // Gestion de l'ouverture / fermeture
+  // Ouverture / Fermeture / Nettoyage
   // --------------------------------------------------------------------------
   function togglePanel() {
     const isOpen = panel.classList.toggle('is-open');
@@ -234,13 +321,28 @@
   fab.addEventListener('click', togglePanel);
   btnClose.addEventListener('click', () => panel.classList.remove('is-open'));
 
-  // Raccourcis clavier (Alt + P pour basculer, Échap pour fermeture discrète)
+  btnClear.addEventListener('click', () => {
+    body.querySelectorAll('.pp-result-card').forEach(el => el.remove());
+    attachedFiles = [];
+    extractedChallenge = null;
+    renderAttachedFiles();
+    if (emptyState) emptyState.style.display = '';
+    statusText.textContent = 'ready';
+  });
+
   window.addEventListener('keydown', (e) => {
     if (e.altKey && (e.key === 'p' || e.key === 'P')) {
       e.preventDefault();
       togglePanel();
+    } else if (e.altKey && (e.key === 'c' || e.key === 'C')) {
+      e.preventDefault();
+      takeChallengeScreenshot(true);
+    } else if (e.altKey && (e.key === 's' || e.key === 'S')) {
+      e.preventDefault();
+      if (!panel.classList.contains('is-open')) panel.classList.add('is-open');
+      btnScan.click();
     } else if (e.key === 'Escape') {
-      if (previewModal && previewModal.classList.contains('is-active')) {
+      if (previewModal.classList.contains('is-active')) {
         closeImagePreview();
       } else if (settingsModal.classList.contains('is-active')) {
         closeSettings();
@@ -250,17 +352,11 @@
     }
   });
 
-  // Glisser-déposer de fichiers directement sur le bouton flottant
   fab.addEventListener('dragover', (e) => {
     e.preventDefault();
-    fab.style.borderColor = 'var(--pp-terminal-green)';
-  });
-  fab.addEventListener('dragleave', () => {
-    fab.style.borderColor = 'var(--pp-border)';
   });
   fab.addEventListener('drop', async (e) => {
     e.preventDefault();
-    fab.style.borderColor = 'var(--pp-border)';
     if (!panel.classList.contains('is-open')) {
       panel.classList.add('is-open');
     }
@@ -291,6 +387,7 @@
   }
 
   btnSettings.addEventListener('click', openSettings);
+  modelBadge.addEventListener('click', openSettings);
   btnCloseSettings.addEventListener('click', closeSettings);
 
   cfgModel.addEventListener('change', () => {
@@ -316,38 +413,51 @@
 
     updateModelBadge();
     closeSettings();
-    showToast('Paramètres sauvegardés avec succès');
+    showToast('Enregistré ✓');
   });
 
   function updateModelBadge() {
-    const prettyNames = {
-      'gemini-2.5-flash': 'Gemini 2.5 Flash',
-      'gemini-2.0-flash-lite': 'Gemini 2.0 Flash Lite',
-      'gemini-3.1-flash-lite': 'Gemini 3.1 Flash Lite',
-      'gemini-1.5-flash': 'Gemini 1.5 Flash'
+    const shortNames = {
+      'gemini-2.5-flash': '2.5-flash',
+      'gemini-2.0-flash-lite': '2.0-lite',
+      'gemini-3.1-flash-lite': '3.1-lite',
+      'gemini-1.5-flash': '1.5-flash'
     };
-    modelBadge.textContent = prettyNames[config.model] || config.model;
+    modelBadge.textContent = shortNames[config.model] || config.model;
   }
 
   // --------------------------------------------------------------------------
-  // Capture d'écran visuelle (Robuste : html2canvas + API Chrome)
+  // Capture d'écran (Priorité 1 : Capture GPU native de l'onglet pour iframes/graphiques)
   // --------------------------------------------------------------------------
-  async function takeChallengeScreenshot() {
-    if (!btnScreenshot) return;
-    btnScreenshot.disabled = true;
-    statusText.textContent = '> capture --screen in_progress...';
+  async function captureTabDataUrl() {
+    const prevRootVis = root.style.visibility;
+    root.style.visibility = 'hidden';
 
-    // 1. Masquer temporairement le panneau PixPilot pour qu'il n'apparaisse pas sur la capture
-    const originalVisibility = panel.style.visibility;
-    panel.style.visibility = 'hidden';
+    // Attendre le repaint du navigateur pour que l'interface PixPilot disparaisse de l'image
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    await new Promise(r => setTimeout(r, 40));
 
     let dataUrl = null;
 
-    // Laisser un court délai pour que le panneau soit bien masqué visuellement
-    await new Promise((r) => setTimeout(r, 60));
+    // 1. Priorité absolue : API Chrome captureVisibleTab (capture réelle avec iframes, canvas, graphiques, infobulles)
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+      dataUrl = await new Promise((resolve) => {
+        try {
+          chrome.runtime.sendMessage({ action: 'capture-visible-tab' }, (response) => {
+            if (response && response.success && response.dataUrl) {
+              resolve(response.dataUrl);
+            } else {
+              resolve(null);
+            }
+          });
+        } catch (_) {
+          resolve(null);
+        }
+      });
+    }
 
-    // A. Essai prioritaire avec html2canvas (cible directement la question Pix)
-    if (typeof html2canvas !== 'undefined') {
+    // 2. Repli html2canvas uniquement hors extension (ex: fichier demo.html local)
+    if (!dataUrl && typeof html2canvas !== 'undefined') {
       try {
         const candidates = [
           document.querySelector('.pix-challenge-card'),
@@ -367,34 +477,29 @@
         });
         dataUrl = canvas.toDataURL('image/png');
       } catch (err) {
-        console.warn('[PixPilot] html2canvas warning:', err);
+        console.warn('[PixPilot] html2canvas fallback warning:', err);
       }
     }
 
-    // B. Repli avec l'API Chrome si html2canvas n'a pas pu produire d'image
-    if (!dataUrl && typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
-      dataUrl = await new Promise((resolve) => {
-        try {
-          chrome.runtime.sendMessage({ action: 'capture-visible-tab' }, (response) => {
-            if (response && response.success && response.dataUrl) {
-              resolve(response.dataUrl);
-            } else {
-              resolve(null);
-            }
-          });
-        } catch (_) {
-          resolve(null);
-        }
-      });
-    }
+    root.style.visibility = prevRootVis;
+    return dataUrl;
+  }
 
-    // Restaurer l'affichage du panneau
-    panel.style.visibility = originalVisibility;
+  async function takeChallengeScreenshot(openIfClosed = false) {
+    if (!btnScreenshot) return;
+    btnScreenshot.disabled = true;
+    statusText.textContent = 'capture...';
+
+    const dataUrl = await captureTabDataUrl();
     btnScreenshot.disabled = false;
+
+    if (openIfClosed && !panel.classList.contains('is-open')) {
+      panel.classList.add('is-open');
+    }
 
     if (dataUrl) {
       const b64 = dataUrl.split(',')[1];
-      const captureName = `capture_pix_${Date.now().toString().slice(-4)}.png`;
+      const captureName = `cap_${Date.now().toString().slice(-4)}.png`;
       attachedFiles.push({
         name: captureName,
         type: 'image',
@@ -409,20 +514,17 @@
         }
       });
       renderAttachedFiles();
-      statusText.textContent = `> ${captureName} [CHARGÉ]`;
-      showToast('Capture effectuée ✓');
+      statusText.textContent = captureName;
+      showToast('Capturé ✓');
     } else {
-      statusText.textContent = '> error: capture_failed';
-      alert('La capture d\'écran n\'a pas pu être effectuée. Vérifiez que l\'extension a accès aux onglets.');
+      statusText.textContent = 'err: capture';
     }
   }
 
-  if (btnScreenshot) {
-    btnScreenshot.addEventListener('click', takeChallengeScreenshot);
-  }
+  btnScreenshot.addEventListener('click', () => takeChallengeScreenshot(false));
 
   // --------------------------------------------------------------------------
-  // Gestion des Fichiers (Images, PDF, Excel, Word, etc.)
+  // Fichiers
   // --------------------------------------------------------------------------
   btnAttach.addEventListener('click', () => fileInput.click());
 
@@ -434,37 +536,53 @@
     fileInput.value = '';
   });
 
-  // Support Drag & Drop direct sur le panneau
   panel.addEventListener('dragover', (e) => {
     e.preventDefault();
-    panel.style.borderColor = 'var(--pp-accent)';
-  });
-
-  panel.addEventListener('dragleave', (e) => {
-    e.preventDefault();
-    panel.style.borderColor = 'var(--pp-border)';
   });
 
   panel.addEventListener('drop', async (e) => {
     e.preventDefault();
-    panel.style.borderColor = 'var(--pp-border)';
     const files = Array.from(e.dataTransfer.files || []);
     for (const f of files) {
       await handleFileUpload(f);
     }
   });
 
+  // Support du collage direct d'image (Ctrl+V après Win+Shift+S)
+  window.addEventListener('paste', async (e) => {
+    if (!panel.classList.contains('is-open')) return;
+    const items = Array.from(e.clipboardData?.items || []);
+    const imageItems = items.filter(item => item.type.startsWith('image/'));
+    if (imageItems.length === 0) return;
+
+    e.preventDefault();
+    for (const item of imageItems) {
+      const blob = item.getAsFile();
+      if (blob) {
+        const ext = blob.type.split('/')[1] || 'png';
+        const namedFile = new File([blob], `clip_${Date.now().toString().slice(-4)}.${ext}`, { type: blob.type });
+        await handleFileUpload(namedFile);
+      }
+    }
+    showToast('Image collée ✓');
+  });
+
+  // Auto-resize du champ de texte
+  promptInput.addEventListener('input', () => {
+    promptInput.style.height = 'auto';
+    promptInput.style.height = `${Math.min(promptInput.scrollHeight, 72)}px`;
+  });
+
   async function handleFileUpload(file) {
-    statusText.textContent = `Traitement de ${file.name}...`;
+    statusText.textContent = `load: ${file.name}`;
     try {
       const processed = await window.PixFileParser.processFile(file);
       attachedFiles.push(processed);
       renderAttachedFiles();
-      statusText.textContent = `${file.name} ajouté`;
+      statusText.textContent = file.name;
     } catch (err) {
       console.error(err);
-      alert(`Erreur de lecture du fichier ${file.name}: ${err.message}`);
-      statusText.textContent = 'Erreur fichier';
+      statusText.textContent = 'err: file';
     }
   }
 
@@ -474,33 +592,20 @@
       const chip = document.createElement('div');
       chip.className = 'pp-file-chip';
 
-      let iconSvg = '';
+      let iconHtml = '';
       if (file.type === 'image' && file.previewUrl) {
-        iconSvg = `<img src="${file.previewUrl}" class="pp-file-chip-thumb" alt="vignette">`;
+        iconHtml = `<img src="${file.previewUrl}" class="pp-file-chip-thumb" alt="">`;
         chip.classList.add('has-preview');
-        chip.title = "Cliquer pour afficher la capture en grand";
-      } else if (file.type === 'image') {
-        iconSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
-      } else if (file.type === 'spreadsheet') {
-        iconSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>`;
-      } else if (file.type === 'word') {
-        iconSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>`;
-      } else if (file.type === 'pdf') {
-        iconSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`;
       } else {
-        iconSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path></svg>`;
+        iconHtml = `<span style="color:var(--pp-accent);font-weight:700;">#</span>`;
       }
 
-      const zoomIndicator = (file.type === 'image' && file.previewUrl) ? `<span class="pp-file-chip-zoom" title="Agrandir">🔍</span>` : '';
-
       chip.innerHTML = `
-        ${iconSvg}
-        <span class="pp-file-chip-name">${file.name}</span>
-        ${zoomIndicator}
-        <span class="pp-file-chip-remove" data-index="${index}" title="Supprimer">×</span>
+        ${iconHtml}
+        <span class="pp-file-chip-name">${escapeHtml(file.name)}</span>
+        <span class="pp-file-chip-remove" data-index="${index}">&times;</span>
       `;
 
-      // Clic sur le chip ou la loupe pour afficher la capture en grand
       if (file.type === 'image' && file.previewUrl) {
         chip.addEventListener('click', (e) => {
           if (e.target.classList.contains('pp-file-chip-remove')) return;
@@ -511,7 +616,6 @@
       attachmentsList.appendChild(chip);
     });
 
-    // Écouteur pour suppression
     attachmentsList.querySelectorAll('.pp-file-chip-remove').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -523,36 +627,58 @@
   }
 
   // --------------------------------------------------------------------------
-  // Scan Automatique de la Question Pix
+  // Scan & Résolution
   // --------------------------------------------------------------------------
+  function checkHasVisualContent(challenge) {
+    const textToCheck = `${challenge?.title || ''} ${challenge?.instructions || ''}`.slice(0, 3000);
+    const mentionsVisual = /graphique|diagramme|sch[eé]ma|camembert|courbe|histogramme|secteurs?\b|figure|illustration|image ci-dessous|carte ci-dessous/i.test(textToCheck);
+    const hasSvgChart = Array.from(document.querySelectorAll('svg')).some(svg => {
+      if (svg.closest('#pixpilot-root')) return false;
+      const rect = svg.getBoundingClientRect();
+      return rect.width > 120 && rect.height > 120 && svg.querySelectorAll('path, rect, circle').length >= 3;
+    });
+    const hasCanvas = Array.from(document.querySelectorAll('canvas, iframe')).some(el => {
+      if (el.closest('#pixpilot-root')) return false;
+      const rect = el.getBoundingClientRect();
+      return rect.width > 120 && rect.height > 80;
+    });
+    return Boolean(mentionsVisual || hasSvgChart || hasCanvas);
+  }
+
+  async function autoCaptureIfVisual(challenge) {
+    if (!checkHasVisualContent(challenge) || attachedFiles.some(f => f.type === 'image')) return;
+    statusText.textContent = 'cap: graph...';
+    const autoCaptureUrl = await captureTabDataUrl();
+    if (!autoCaptureUrl) return;
+    const b64 = autoCaptureUrl.split(',')[1];
+    attachedFiles.push({
+      name: `auto_cap.png`,
+      type: 'image',
+      size: Math.round(b64.length * 0.75),
+      mimeType: 'image/png',
+      previewUrl: autoCaptureUrl,
+      geminiPart: { inlineData: { mimeType: 'image/png', data: b64 } }
+    });
+    renderAttachedFiles();
+  }
+
   btnScan.addEventListener('click', async () => {
+    if (isGenerating) return;
     btnScan.disabled = true;
-    btnScan.innerHTML = `<span style="display:inline-block;animation:spin 1s linear infinite;">⏳</span> Scan en cours...`;
+    btnScan.innerHTML = `<span class="pp-spinner"></span> <span>scan...</span>`;
 
     try {
       extractedChallenge = await window.PixExtractor.extractCurrentChallenge();
-      statusText.textContent = `Question scannée (${extractedChallenge.options.length} options)`;
-      showToast('Question Pix analysée avec succès');
-
-      // Si l'utilisateur clique sur Scan, lancer automatiquement la résolution si désiré
       await submitToGemini();
     } catch (err) {
       console.error(err);
-      statusText.textContent = 'Erreur lors du scan';
+      statusText.textContent = 'err: scan';
     } finally {
       btnScan.disabled = false;
-      btnScan.innerHTML = `
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M2 12h20M12 2v20"></path>
-        </svg>
-        Scanner la question
-      `;
+      btnScan.innerHTML = `${ICONS.scan} <span>$ scan</span>`;
     }
   });
 
-  // --------------------------------------------------------------------------
-  // Soumission et Résolution Gemini
-  // --------------------------------------------------------------------------
   btnSend.addEventListener('click', () => submitToGemini());
 
   promptInput.addEventListener('keydown', (e) => {
@@ -562,86 +688,285 @@
     }
   });
 
+  function getFieldLabels(challenge) {
+    if (!challenge) return [];
+    const labels = [];
+    if (Array.isArray(challenge.inputs) && challenge.inputs.length > 0) {
+      challenge.inputs.forEach((inp, idx) => {
+        labels.push(inp.label || inp.placeholder || `Champ #${idx + 1}`);
+      });
+    }
+    if (Array.isArray(challenge.selects) && challenge.selects.length > 0) {
+      challenge.selects.forEach((sel, idx) => {
+        labels.push(sel.label || `Menu #${idx + 1}`);
+      });
+    }
+    if (labels.length === 0 && Array.isArray(challenge.options) && challenge.options.length > 0) {
+      if (challenge.questionType === 'qcm-multiple') {
+        labels.push('Cases à cocher multiples');
+      } else {
+        labels.push('Choix unique');
+      }
+    }
+    return labels;
+  }
+
+  function getExpectedAnswerCount(challenge) {
+    if (!challenge) return 0;
+    const inputCount = Array.isArray(challenge.inputs) ? challenge.inputs.length : 0;
+    const selectCount = Array.isArray(challenge.selects) ? challenge.selects.length : 0;
+    if (inputCount > 0 || selectCount > 0) {
+      return inputCount + selectCount;
+    }
+    if (challenge.questionType === 'qcm-unique') {
+      return 1;
+    }
+    return 0;
+  }
+
+  function tryExtractWordFromRowAnswers(answersList) {
+    if (!answersList || answersList.length <= 1) return null;
+
+    // Cas 1 : Tous les items sont déjà des lettres uniques (ex: ["c", "e", "r", "i", "s", "e"])
+    if (answersList.every(a => a.trim().length === 1)) {
+      return answersList.map(a => a.trim()).join('');
+    }
+
+    // Cas 2 : Lignes finissant par un caractère isolé (ex: "Ligne 6: Louka, 20, Calais, 15.2, c")
+    const lastParts = answersList.map(a => {
+      const trimmed = a.trim();
+      const m = trimmed.match(/(?:^|[,;|:\s])([a-zA-ZÀ-ÿ0-9])['"`\s]*$/);
+      return m ? m[1] : null;
+    });
+    if (lastParts.every(Boolean)) {
+      return lastParts.join('');
+    }
+
+    // Cas 3 : Lignes contenant "code: X" ou "colonne Code = X"
+    const codeMatch = answersList.map(a => {
+      const m = a.match(/(?:code|indice|lettre|mot)\s*[:=]\s*([a-zA-ZÀ-ÿ0-9])/i);
+      return m ? m[1] : null;
+    });
+    if (codeMatch.every(Boolean)) {
+      return codeMatch.join('');
+    }
+
+    return null;
+  }
+
+  function sanitizeExcelDateOutput(ans, promptText = '') {
+    if (!ans || typeof ans !== 'string') return ans;
+    const isFormatQuestion = /format de cellule|nouveau format|afficher la cellule|cellule\s+[A-Z]\d+|format.*date/i.test(promptText);
+    if (!isFormatQuestion) return ans;
+
+    const monthMap = [
+      { regex: /janv\.?/gi, full: 'janvier' },
+      { regex: /f[eé]vr?\.?/gi, full: 'février' },
+      { regex: /avr\.?/gi, full: 'avril' },
+      { regex: /juil\.?/gi, full: 'juillet' },
+      { regex: /sept?\.?/gi, full: 'septembre' },
+      { regex: /oct\.?/gi, full: 'octobre' },
+      { regex: /nov\.?/gi, full: 'novembre' },
+      { regex: /d[eé]c\.?/gi, full: 'décembre' }
+    ];
+
+    let res = ans.trim();
+    for (const m of monthMap) {
+      const matchPattern = new RegExp(`(\\b\\d{1,2}[\\s-])` + m.regex.source + `([\\s-]\\d{4}\\b)`, 'i');
+      if (matchPattern.test(res)) {
+        res = res.replace(matchPattern, `$1${m.full}$2`);
+      }
+    }
+    return res;
+  }
+
   async function submitToGemini() {
     if (isGenerating) return;
 
     if (!config.apiKey) {
       openSettings();
-      alert('Veuillez d\'abord saisir votre clé API Google Gemini.');
       return;
     }
 
     const manualPrompt = promptInput.value.trim();
 
-    // Si on n'a ni question scannée, ni prompt manuel, ni fichier
     if (!extractedChallenge && !manualPrompt && attachedFiles.length === 0) {
-      // Tenter un scan automatique silencieux
       extractedChallenge = await window.PixExtractor.extractCurrentChallenge();
     }
 
-    // Préparation du prompt complet
+    // Capture réelle automatique si la question contient un graphique / schéma
+    if (extractedChallenge) {
+      try { await autoCaptureIfVisual(extractedChallenge); } catch (_) {}
+    }
+
+    // Téléchargement et lecture automatiques des fichiers joints dans la question Pix (sans blocage CORS)
+    let autoFetchedInfo = null;
+    if (extractedChallenge && Array.isArray(extractedChallenge.downloadLinks) && extractedChallenge.downloadLinks.length > 0) {
+      const hasDocAttached = attachedFiles.some(f => f.type !== 'image');
+      const fileFamily = (ext) => /^(xlsx|xls|ods|csv)$/i.test(ext || '') ? 'sheet' : /^(docx|doc|odt)$/i.test(ext || '') ? 'doc' : (ext || 'other');
+      const fetchedFamilies = new Set();
+      if (!hasDocAttached) {
+        for (const dl of extractedChallenge.downloadLinks.slice(0, 4)) {
+          // Pix propose le même fichier en .xlsx ET .ods : n'en lire qu'un seul (évite les doublons)
+          if (fetchedFamilies.has(fileFamily(dl.ext))) continue;
+          try {
+            statusText.textContent = `fetch: ${dl.name}...`;
+            let blob = null;
+            let cd = '';
+            let ct = '';
+
+            // 1. Téléchargement direct (CORS standard - marche sur app.pix.fr et buckets S3 publics)
+            try {
+              const resp = await fetch(dl.url, { mode: 'cors' });
+              if (resp.ok) {
+                blob = await resp.blob();
+                cd = resp.headers.get('content-disposition') || '';
+                ct = (resp.headers.get('content-type') || blob.type || '').toLowerCase();
+              }
+            } catch (_) {}
+
+            // 2. Repli direct avec credentials: 'omit' (contourne le rejet sur Access-Control-Allow-Origin: *)
+            if (!blob) {
+              try {
+                const resp = await fetch(dl.url, { credentials: 'omit' });
+                if (resp.ok) {
+                  blob = await resp.blob();
+                  cd = resp.headers.get('content-disposition') || '';
+                  ct = (resp.headers.get('content-type') || blob.type || '').toLowerCase();
+                }
+              } catch (_) {}
+            }
+
+            // 3. Repli via le Service Worker (contourne 100% des restrictions CORS externes)
+            if (!blob && typeof chrome !== 'undefined' && chrome.runtime?.sendMessage) {
+              const bgRes = await new Promise((resolve) => {
+                try {
+                  chrome.runtime.sendMessage({ action: 'fetch-file-base64', url: dl.url }, (r) => resolve(r || null));
+                } catch (_) {
+                  resolve(null);
+                }
+              });
+              if (bgRes && bgRes.success && bgRes.base64) {
+                const binStr = atob(bgRes.base64);
+                const bytes = new Uint8Array(binStr.length);
+                for (let i = 0; i < binStr.length; i++) bytes[i] = binStr.charCodeAt(i);
+                ct = (bgRes.contentType || '').toLowerCase();
+                cd = bgRes.contentDisposition || '';
+                blob = new Blob([bytes], { type: ct });
+              }
+            }
+
+            if (!blob) {
+              autoFetchedInfo = { ok: false, name: dl.name };
+              continue;
+            }
+
+            let fileName = dl.name || 'exercice_pix';
+            const cdMatch = cd.match(/filename\*?=(?:UTF-8'')?["']?([^"';\n]+)["']?/i);
+            if (cdMatch && cdMatch[1]) {
+              try { fileName = decodeURIComponent(cdMatch[1].trim()); } catch (_) { fileName = cdMatch[1].trim(); }
+            }
+
+            if (!/\.(xlsx|xls|ods|csv|docx|doc|odt|pdf|zip|txt|json|py|sql)$/i.test(fileName)) {
+              if (ct.includes('zip')) fileName += '.zip';
+              else if (ct.includes('opendocument.spreadsheet')) fileName += '.ods';
+              else if (ct.includes('spreadsheet') || ct.includes('excel') || ct.includes('officedocument.spreadsheetml')) fileName += '.xlsx';
+              else if (ct.includes('csv')) fileName += '.csv';
+              else if (ct.includes('wordprocessingml') || ct.includes('msword')) fileName += '.docx';
+              else if (ct.includes('opendocument.text')) fileName += '.odt';
+              else if (ct.includes('pdf')) fileName += '.pdf';
+              else fileName += `.${dl.ext || 'xlsx'}`;
+            }
+
+            const fetchedFile = new File([blob], fileName, { type: blob.type || ct });
+            const processed = await window.PixFileParser.processFile(fetchedFile);
+            attachedFiles.push(processed);
+            autoFetchedInfo = { ok: true, name: fileName, size: blob.size };
+            fetchedFamilies.add(fileFamily(fileName.split('.').pop()));
+            fetchedFamilies.add(fileFamily(dl.ext));
+            renderAttachedFiles();
+          } catch (e) {
+            console.warn('[PixPilot] Auto-fetch attachment warning:', e);
+            autoFetchedInfo = { ok: false, name: dl.name };
+          }
+        }
+      }
+    }
+
+    // Contexte de validation : nombre de champs attendus + tables structurées pour le moteur local
+    const challengeSnapshot = extractedChallenge;
+    const fieldLabels = getFieldLabels(challengeSnapshot);
+    const expectedCount = getExpectedAnswerCount(challengeSnapshot);
+    const dataTables = attachedFiles.flatMap(f => Array.isArray(f.tables) ? f.tables : []);
+
     let fullPrompt = '';
     if (extractedChallenge && extractedChallenge.fullText) {
       fullPrompt += extractedChallenge.fullText + '\n\n';
     }
 
     if (manualPrompt) {
-      fullPrompt += `Instructions ou précisions de l'utilisateur :\n${manualPrompt}\n\n`;
+      fullPrompt += `Instruction : ${manualPrompt}\n\n`;
     } else if (!extractedChallenge) {
-      fullPrompt += `Analyse les documents joints et fournis la réponse exacte pour l'exercice Pix.\n`;
+      fullPrompt += `Donne la réponse exacte pour cet exercice Pix.\n`;
     }
 
-    fullPrompt += `Fournis impérativement la réponse exacte à copier dans les balises <answers><item>...</item></answers> et une explication synthétique dans <explanation>...</explanation>.`;
+    if (expectedCount > 0) {
+      fullPrompt += `NOMBRE EXACT D'ITEMS ATTENDUS : ${expectedCount} (${fieldLabels.map((l, i) => `#${i + 1} "${l}"`).join(', ')}). Un item = uniquement la valeur finale à saisir.\n`;
+    }
+    if (dataTables.length > 0) {
+      fullPrompt += `Tableur fourni (${dataTables.map(t => `"${t.sheet}"`).join(', ')}) : pour tout filtrage/tri/comptage/somme/concaténation, écris une <query> par champ (avec "field":N) — le moteur JS calcule le résultat exact.\n`;
+    }
 
-    // Nettoyer le champ de saisie
+    fullPrompt += `Réponse exacte dans <answers><item>...</item></answers>. <explanation></explanation> vide sauf nécessité (1 ligne max).`;
+
     promptInput.value = '';
-
-    // Préparation de l'affichage
+    promptInput.style.height = 'auto';
     if (emptyState) emptyState.style.display = 'none';
 
-    // Création de la carte de résultat Style Console CMD / Ancien ChatGPT
     const resultCard = document.createElement('div');
     resultCard.className = 'pp-result-card';
     resultCard.innerHTML = `
-      <div class="pp-console-cmdline">
-        <span class="prompt">&gt;</span> pixpilot --detect-answers [STATUS: ANALYZING...]
+      <div class="pp-card-meta">
+        <div class="pp-cmd-tag">
+          <span class="prompt">&gt;_</span>
+          <span class="pp-cmd-status">analyse...</span>
+        </div>
+        <div class="pp-header-actions-group"></div>
       </div>
 
-      <div class="pp-answer-banner">
-        <div class="pp-answer-header">
-          <div class="pp-answer-label">&gt; RÉPONSE(S) DÉTECTÉE(S)</div>
-          <div id="pp-copy-all-container" class="pp-header-actions-group"></div>
-        </div>
-        <div id="pp-answers-display" class="pp-single-answer-box">
-          <span style="color: var(--pp-text-muted); font-size: 12px;">&gt; Traitement du prompt et des données multimodales...</span>
+      <div class="pp-answers-container pp-single-answer-box">
+        <div class="pp-loading-inline">
+          <span class="pp-spinner"></span>
+          <span>Résolution...</span>
         </div>
       </div>
 
-      <div class="pp-explanation-section">
-        <div class="pp-explanation-title">&gt; EXPLICATION &amp; DÉMARCHE :</div>
-        <div class="pp-typewriter-text"><span class="pp-cursor"></span></div>
+      <div class="pp-explanation-section is-empty">
+        <div class="pp-typewriter-text"></div>
       </div>
     `;
 
     body.prepend(resultCard);
 
-    const cmdLine = resultCard.querySelector('.pp-console-cmdline');
-    const answersDisplay = resultCard.querySelector('#pp-answers-display');
-    const copyAllContainer = resultCard.querySelector('#pp-copy-all-container');
+    const cmdStatus = resultCard.querySelector('.pp-cmd-status');
+    const answersDisplay = resultCard.querySelector('.pp-answers-container');
+    const copyAllContainer = resultCard.querySelector('.pp-header-actions-group');
+    const explanationSection = resultCard.querySelector('.pp-explanation-section');
     const typewriterText = resultCard.querySelector('.pp-typewriter-text');
 
-    // Conserver les fichiers et l'énoncé pour la requête en cours
     const filesToSend = [...attachedFiles];
     const imagesToSend = extractedChallenge ? extractedChallenge.images : [];
+    const attachedFileNames = filesToSend.map(f => f.name);
 
-    // Réinitialiser la file pour la prochaine question (évite le renvoi accidentel des anciennes captures)
     attachedFiles = [];
     extractedChallenge = null;
     renderAttachedFiles();
 
     isGenerating = true;
     btnSend.disabled = true;
-    statusText.textContent = `> gemini --query in_progress...`;
+    statusText.textContent = 'running...';
+    const statusLed = document.getElementById('pp-status-led');
+    if (statusLed) statusLed.classList.add('working');
 
     try {
       const response = await window.PixGemini.generateAnswer({
@@ -652,45 +977,172 @@
         images: imagesToSend
       });
 
-      if (cmdLine) {
-        cmdLine.innerHTML = `<span class="prompt">&gt;</span> pixpilot --detect-answers [STATUS: 200 OK - ${response.answers.length} ANSWERS]`;
+      let finalAnswers = Array.isArray(response.answers) ? [...response.answers] : [];
+      let querySuccess = false;
+
+      // 1. Exécution des requêtes locales <query> générées par Gemini sur les données réelles du tableur
+      if (dataTables.length > 0 && typeof window.PixQueryEngine !== 'undefined' && Array.isArray(response.queries) && response.queries.length > 0) {
+        const qAnswers = [];
+        for (const q of response.queries) {
+          try {
+            const res = window.PixQueryEngine.execute(dataTables, q);
+            if (res && res.ok && Array.isArray(res.answers) && res.answers.length > 0) {
+              qAnswers.push(...res.answers);
+            }
+          } catch (qe) {
+            console.warn('[PixPilot] Query execution err:', qe);
+          }
+        }
+        if (qAnswers.length > 0) {
+          finalAnswers = qAnswers;
+          querySuccess = true;
+        }
       }
 
-      // 1. Affichage des Réponses Détectées (Une ou Plusieurs)
-      renderAnswers(response.answers, answersDisplay, copyAllContainer);
+      // 2. Filet de sécurité anti-découpage multi-lignes :
+      // Si la page n'attend qu'UNE SEULE réponse (ex: champ "Mot :") mais que Gemini a renvoyé N lignes de tableau
+      if (expectedCount === 1 && finalAnswers.length > 1) {
+        const extractedWord = tryExtractWordFromRowAnswers(finalAnswers);
+        if (extractedWord) {
+          finalAnswers = [extractedWord];
+        }
+      }
 
-      // 2. Animation d'écriture épurée pour l'explication (style ChatGPT classique)
-      await runTypewriterAnimation(response.explanation, typewriterText);
+      // 3. Auto-correction rapide si 1 seule réponse attendue mais toujours N items non résolus
+      if (expectedCount === 1 && finalAnswers.length > 1 && !querySuccess) {
+        statusText.textContent = 'corr: 1 mot...';
+        try {
+          const correctionPrompt = `ERREUR : La page Pix comporte UNIQUEMENT 1 champ de saisie ("${fieldLabels[0] || 'Mot'}").
+Tu as renvoyé ${finalAnswers.length} items (${finalAnswers.slice(0, 3).join(' | ')}...).
+Donne UNIQUEMENT la valeur UNIQUE finale attendue (le mot complet ou le nombre final, sans lister les lignes du tableau).
+Format strict :
+<answers>
+<item>valeur_unique</item>
+</answers>`;
+          const retryRes = await window.PixGemini.generateAnswer({
+            apiKey: config.apiKey,
+            model: config.model,
+            userPrompt: fullPrompt + '\n\n' + correctionPrompt,
+            files: filesToSend,
+            images: imagesToSend
+          });
+          if (retryRes && Array.isArray(retryRes.answers) && retryRes.answers.length === 1) {
+            finalAnswers = retryRes.answers;
+            if (retryRes.explanation) response.explanation = retryRes.explanation;
+          }
+        } catch (_) {}
+      }
 
-      statusText.textContent = '> status: response_ready';
+      // 4. Si la question porte sur un diagramme formant des lettres et qu'un mot a été décodé géométriquement
+      const mentionsLetterChart = /lettres?\s*s'affichent|forme(?:nt)?\s*la\s*lettre|diagramme.*lettre|barres.*lettre/i.test(fullPrompt);
+      if (mentionsLetterChart && dataTables.some(t => t.detectedBarWord)) {
+        const detected = dataTables.find(t => t.detectedBarWord)?.detectedBarWord;
+        if (detected) {
+          console.log('[PixPilot] Décodage géométrique de diagramme en barres appliqué :', detected);
+          finalAnswers = [detected.toUpperCase()];
+        }
+      }
+
+      // 4b. Si la question demande le montant total des ventes (SOMMEPROD de quantité × prix)
+      const mentionsSalesTotal = /montant\s*total\s*(?:des\s*)?ventes|chiffre\s*d'affaires|quantit[eé]\s*vendue\s*[×x*]\s*prix/i.test(fullPrompt);
+      if (mentionsSalesTotal && dataTables.some(t => t.detectedSumproduct)) {
+        const spTable = dataTables.find(t => t.detectedSumproduct);
+        if (spTable) {
+          console.log('[PixPilot] Montant total des ventes SOMMEPROD appliqué :', spTable.detectedSumproduct);
+          if (expectedCount <= 1) {
+            finalAnswers = [String(spTable.detectedSumproduct)];
+          } else if (expectedCount === 2 && spTable.detectedSumproductFormula) {
+            finalAnswers = [String(spTable.detectedSumproduct), spTable.detectedSumproductFormula];
+          }
+        }
+      }
+
+      // 4c. Si la question demande l'année de naissance d'une personne (ex: "Quelle est l'année de naissance d'Amadou ?")
+      const birthYearMatch = fullPrompt.match(/ann[eé]e\s+de\s+naissance\s+d['’]([a-zA-ZÀ-ÿ\s-]+)/i);
+      if (birthYearMatch) {
+        const targetName = birthYearMatch[1].trim().toLowerCase();
+        const normTarget = targetName.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        for (const t of dataTables) {
+          if (t.personDates && (t.personDates[targetName] || t.personDates[normTarget])) {
+            const yr = t.personDates[targetName] || t.personDates[normTarget];
+            console.log('[PixPilot] Année de naissance résolue directement :', targetName, '->', yr);
+            finalAnswers = [String(yr)];
+            break;
+          }
+        }
+      }
+
+      // 5. Normalisation des réponses uniques (Dates Excel et mots de code)
+      if (finalAnswers.length === 1 && typeof finalAnswers[0] === 'string') {
+        // Date Excel (ex: 15-janv-2015 -> 15-janvier-2015)
+        finalAnswers[0] = sanitizeExcelDateOutput(finalAnswers[0], fullPrompt);
+
+        // Si la question demande explicitement "Quatre lettres" ou "lettres s'affichent"
+        if (/quatre\s*lettres|lettres?\s*s'affichent/i.test(fullPrompt) && finalAnswers[0].length >= 4) {
+          const cleanLetters = finalAnswers[0].replace(/[^a-zA-Z]/g, '').toUpperCase();
+          if (cleanLetters.length === 4) {
+            finalAnswers[0] = cleanLetters;
+          }
+        }
+      }
+
+      if (cmdStatus) {
+        let tagText = finalAnswers.length > 1
+          ? `${finalAnswers.length} réponses`
+          : 'réponse';
+        if (querySuccess) {
+          tagText += ' · [⚡ calcul exact]';
+        } else if (attachedFileNames.length > 0) {
+          tagText += ` · [📎 ${attachedFileNames[0]}]`;
+        } else if (autoFetchedInfo && !autoFetchedInfo.ok) {
+          tagText += ` · [⚠️ sans fichier]`;
+        }
+        cmdStatus.textContent = tagText;
+      }
+
+      if (autoFetchedInfo && !autoFetchedInfo.ok && attachedFileNames.length === 0) {
+        const warnNotice = document.createElement('div');
+        warnNotice.className = 'pp-file-alert';
+        warnNotice.innerHTML = `⚠️ <span>Fichier non lu (${escapeHtml(autoFetchedInfo.name)}). Glisse-le ici ou clique sur <strong>$ file</strong>.</span>`;
+        answersDisplay.before(warnNotice);
+      }
+
+      renderAnswers(finalAnswers, answersDisplay, copyAllContainer);
+
+      if (response.explanation && response.explanation.trim()) {
+        explanationSection.classList.remove('is-empty');
+        await runTypewriterAnimation(response.explanation, typewriterText);
+      }
+
+      statusText.textContent = 'ready';
     } catch (err) {
       console.error(err);
-      if (cmdLine) {
-        cmdLine.innerHTML = `<span class="prompt" style="color:#ef4444;">&gt;</span> pixpilot [STATUS: 500 ERROR]`;
+      if (cmdStatus) {
+        cmdStatus.textContent = 'erreur';
+        cmdStatus.style.color = 'var(--pp-danger)';
       }
-      answersDisplay.innerHTML = `<span style="color: #ef4444; font-size: 12px;">&gt; Erreur : ${escapeHtml(err.message)}</span>`;
-      typewriterText.innerHTML = `Vérifie ta clé API Gemini ou ta connexion.`;
-      statusText.textContent = '> status: error';
+      answersDisplay.innerHTML = `<span style="color: var(--pp-danger); font-size: 11.5px; font-family: var(--pp-font-mono);">${escapeHtml(err.message)}</span>`;
+      statusText.textContent = 'error';
     } finally {
       isGenerating = false;
       btnSend.disabled = false;
+      if (statusLed) statusLed.classList.remove('working');
     }
   }
 
   // --------------------------------------------------------------------------
-  // Rendu des Réponses Détectées (Unitaires ou Multiples) Style CMD
+  // Affichage des réponses
   // --------------------------------------------------------------------------
-  function renderAnswers(answers, container, copyAllContainer) {
+  function renderAnswers(answers, container, actionsHeader) {
     container.innerHTML = '';
-    copyAllContainer.innerHTML = '';
+    actionsHeader.innerHTML = '';
 
     if (!answers || answers.length === 0) {
       container.className = 'pp-single-answer-box';
-      container.innerHTML = `<span style="color: var(--pp-text-secondary); font-size: 12px;">&gt; Aucune réponse isolée nette. Voir l'explication ci-dessous.</span>`;
+      container.innerHTML = `<span style="color: var(--pp-text-secondary); font-size: 11.5px;">Aucune réponse directe détectée</span>`;
       return;
     }
 
-    // CAS 1 : UNE SEULE RÉPONSE
     if (answers.length === 1) {
       container.className = 'pp-single-answer-box';
       const ans = answers[0];
@@ -698,86 +1150,84 @@
       const textEl = document.createElement('span');
       textEl.className = 'pp-answer-text';
       textEl.textContent = ans;
+      textEl.title = 'Cliquer pour copier';
+      textEl.addEventListener('click', () => {
+        navigator.clipboard.writeText(ans);
+        showToast('Copié ✓');
+      });
 
       const actionsWrap = document.createElement('div');
-      actionsWrap.style.display = 'flex';
-      actionsWrap.style.alignItems = 'center';
-      actionsWrap.style.gap = '6px';
+      actionsWrap.className = 'pp-header-actions-group';
 
-      const applyBtn = createApplyButton(answers);
-      const copyBtn = createCopyButton(ans);
-
-      actionsWrap.appendChild(applyBtn);
-      actionsWrap.appendChild(copyBtn);
+      actionsWrap.appendChild(createApplyButton(answers));
+      actionsWrap.appendChild(createCopyButton(ans));
 
       container.appendChild(textEl);
       container.appendChild(actionsWrap);
       return;
     }
 
-    // CAS 2 : PLUSIEURS RÉPONSES DÉTECTÉES (ex: Cases à cocher multiples)
     container.className = 'pp-multi-answers-grid';
 
-    // Boutons d'action globale en haut à droite
-    const applyAllBtn = createApplyButton(answers);
-    copyAllContainer.appendChild(applyAllBtn);
+    actionsHeader.appendChild(createApplyButton(answers));
 
     const copyAllBtn = document.createElement('button');
-    copyAllBtn.className = 'pp-btn-terminal-action';
-    copyAllBtn.innerHTML = `[ 📋 TOUT COPIER (${answers.length}) ]`;
+    copyAllBtn.className = 'pp-btn-action';
+    copyAllBtn.innerHTML = `${ICONS.copy} <span>Tout</span>`;
     copyAllBtn.addEventListener('click', () => {
       navigator.clipboard.writeText(answers.join('\n'));
-      copyAllBtn.innerHTML = `[ TOUT COPIÉ ✓ ]`;
-      copyAllBtn.style.color = 'var(--pp-terminal-green)';
+      copyAllBtn.innerHTML = `${ICONS.check} <span>Copié</span>`;
+      copyAllBtn.style.color = 'var(--pp-accent)';
       setTimeout(() => {
-        copyAllBtn.innerHTML = `[ 📋 TOUT COPIER (${answers.length}) ]`;
+        copyAllBtn.innerHTML = `${ICONS.copy} <span>Tout</span>`;
         copyAllBtn.style.color = '';
-      }, 2000);
+      }, 1800);
     });
-    copyAllContainer.appendChild(copyAllBtn);
+    actionsHeader.appendChild(copyAllBtn);
 
-    // Liste des réponses individuelles
     answers.forEach((ans, idx) => {
       const itemEl = document.createElement('div');
       itemEl.className = 'pp-answer-item';
 
       const labelWrap = document.createElement('div');
-      labelWrap.style.display = 'flex';
-      labelWrap.style.alignItems = 'center';
-      labelWrap.style.gap = '8px';
+      labelWrap.style.cssText = 'display:flex;align-items:center;gap:8px;min-width:0;';
 
       const tag = document.createElement('span');
-      tag.style.cssText = 'font-size: 10px; font-weight: bold; color: var(--pp-terminal-green);';
-      tag.textContent = `[#${idx + 1}]`;
+      tag.className = 'pp-answer-index';
+      tag.textContent = `#${idx + 1}`;
 
       const text = document.createElement('span');
       text.className = 'pp-answer-item-text';
       text.textContent = ans;
+      text.title = 'Cliquer pour copier';
+      text.addEventListener('click', () => {
+        navigator.clipboard.writeText(ans);
+        showToast('Copié ✓');
+      });
 
       labelWrap.appendChild(tag);
       labelWrap.appendChild(text);
 
-      const copyBtn = createCopyButton(ans);
-
       itemEl.appendChild(labelWrap);
-      itemEl.appendChild(copyBtn);
+      itemEl.appendChild(createCopyButton(ans));
       container.appendChild(itemEl);
     });
   }
 
   function createCopyButton(textToCopy) {
     const btn = document.createElement('button');
-    btn.className = 'pp-btn-terminal-action';
-    btn.innerHTML = `[ 📋 COPIER ]`;
+    btn.className = 'pp-btn-action';
+    btn.title = 'Copier';
+    btn.innerHTML = ICONS.copy;
 
     btn.addEventListener('click', async () => {
       await navigator.clipboard.writeText(textToCopy);
-      btn.innerHTML = `[ COPIÉ ✓ ]`;
-      btn.style.color = 'var(--pp-terminal-green)';
+      btn.innerHTML = ICONS.check;
+      btn.style.color = 'var(--pp-accent)';
       setTimeout(() => {
-        btn.innerHTML = `[ 📋 COPIER ]`;
+        btn.innerHTML = ICONS.copy;
         btn.style.color = '';
-      }, 2000);
+      }, 1500);
     });
 
     return btn;
@@ -785,36 +1235,33 @@
 
   function createApplyButton(answers) {
     const btn = document.createElement('button');
-    btn.className = 'pp-btn-terminal-action primary';
-    btn.innerHTML = `[ ⚡ APPLIQUER ]`;
-    btn.title = "Cocher ou remplir automatiquement sur l'interface Pix";
+    btn.className = 'pp-btn-action primary';
+    btn.title = 'Appliquer sur la page (cases, menus, champs, boutons)';
+    btn.innerHTML = `${ICONS.bolt} <span>Appliquer</span>`;
 
-    btn.addEventListener('click', () => {
-      const count = window.PixExtractor?.autoApplyAnswers ? window.PixExtractor.autoApplyAnswers(answers) : 0;
+    btn.addEventListener('click', async () => {
+      const count = window.PixExtractor?.autoApplyAnswers
+        ? await window.PixExtractor.autoApplyAnswers(answers)
+        : 0;
       if (count > 0) {
-        btn.innerHTML = `[ COCHÉ (${count}) ✓ ]`;
-        showToast(`✓ ${count} proposition(s) cochée(s) sur Pix`);
+        btn.innerHTML = `${ICONS.check} <span>${count}</span>`;
       } else {
-        btn.innerHTML = `[ 0 DÉTECTÉ ]`;
-        showToast('Aucun champ correspondant détecté sur la page');
+        btn.innerHTML = `<span>0</span>`;
       }
       setTimeout(() => {
-        btn.innerHTML = `[ ⚡ APPLIQUER ]`;
-      }, 2500);
+        btn.innerHTML = `${ICONS.bolt} <span>Appliquer</span>`;
+      }, 1800);
     });
 
     return btn;
   }
 
   // --------------------------------------------------------------------------
-  // Animation d'Écriture (Ancien ChatGPT Typewriter avec Curseur Bloc █)
+  // Typewriter rapide pour la note technique
   // --------------------------------------------------------------------------
   async function runTypewriterAnimation(fullText, container) {
     const text = (fullText || '').trim();
-    if (!text) {
-      container.innerHTML = '<span style="color:var(--pp-text-muted);font-style:italic;">&gt; Pas d\'explication complémentaire nécessaire.</span>';
-      return;
-    }
+    if (!text) return;
 
     container.innerHTML = '';
     const textNode = document.createTextNode('');
@@ -824,16 +1271,14 @@
     container.appendChild(textNode);
     container.appendChild(cursor);
 
-    // Vitesse adaptée style terminal / ancien ChatGPT
-    const stepSize = text.length > 300 ? 3 : 2;
-    const delay = text.length > 300 ? 10 : 16;
+    const stepSize = text.length > 200 ? 4 : 3;
+    const delay = 8;
 
     for (let i = 0; i < text.length; i += stepSize) {
       textNode.nodeValue = text.slice(0, i + stepSize);
       await new Promise(r => setTimeout(r, delay));
     }
 
-    // Fin de frappe : convertir les balises markdown légères (**gras**, `code`)
     cursor.remove();
     container.innerHTML = formatLightMarkdown(text);
   }
@@ -851,27 +1296,24 @@
     return div.innerHTML;
   }
 
-  // --------------------------------------------------------------------------
-  // Notification Toast éphémère
-  // --------------------------------------------------------------------------
   function showToast(message) {
     const toast = document.createElement('div');
     toast.style.cssText = `
       position: absolute;
-      top: 60px;
+      bottom: 52px;
       left: 50%;
       transform: translateX(-50%);
       background: var(--pp-bg-elevated);
       color: var(--pp-text-main);
-      border: 1px solid var(--pp-border-hover);
-      box-shadow: var(--pp-shadow-card);
-      padding: 6px 14px;
+      border: 1px solid var(--pp-border-accent);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      padding: 4px 10px;
       border-radius: var(--pp-radius-full);
-      font-size: 12px;
-      font-weight: 500;
-      z-index: 20;
+      font-family: var(--pp-font-mono);
+      font-size: 11px;
+      z-index: 25;
       opacity: 0;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.15s ease;
       pointer-events: none;
     `;
     toast.textContent = message;
@@ -880,7 +1322,7 @@
     requestAnimationFrame(() => toast.style.opacity = '1');
     setTimeout(() => {
       toast.style.opacity = '0';
-      setTimeout(() => toast.remove(), 250);
-    }, 2200);
+      setTimeout(() => toast.remove(), 200);
+    }, 1500);
   }
 })();

@@ -10,6 +10,7 @@
     "tabs"
   ],
   "host_permissions": [
+    "<all_urls>",
     "https://*.pix.fr/*",
     "https://*.pix.org/*",
     "https://generativelanguage.googleapis.com/*"
@@ -35,11 +36,27 @@
         "file:///*"
       ],
       "js": [
+        "content/privacy-shield.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.pix.fr/*",
+        "https://*.pix.org/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "file:///*"
+      ],
+      "js": [
         "lib/jszip.min.js",
         "lib/xlsx.mini.js",
         "lib/html2canvas.min.js",
         "lib/pix-extractor.js",
         "lib/file-parser.js",
+        "lib/query-engine.js",
         "lib/gemini.js",
         "content/content.js"
       ],
