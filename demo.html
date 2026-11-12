@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Démo Pix Quiz - Test PixPilot</title>
+  <script src="content/privacy-shield.js"></script>
+  <link rel="stylesheet" href="content/content.css">
+  <style>
+    /* Style d'une fausse page d'exercice Pix */
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+      background-color: #f1f5f9;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .pix-navbar {
+      width: 100%;
+      max-width: 860px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+
+    .pix-logo {
+      font-weight: 800;
+      font-size: 24px;
+      color: #2563eb;
+      letter-spacing: -0.03em;
+    }
+
+    .pix-progress {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+    }
+
+    .pix-challenge-card {
+      width: 100%;
+      max-width: 860px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+      border: 1px solid #e2e8f0;
+      box-sizing: border-box;
+    }
+
+    .challenge-instruction {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f172a;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .challenge-description {
+      font-size: 15px;
+      color: #475569;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .choices-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 30px;
+    }
+
+    .choice-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    .choice-item:hover {
+      border-color: #93c5fd;
+      background-color: #f8fafc;
+    }
+
+    .choice-item input {
+      width: 18px;
+      height: 18px;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+
+    .pix-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 20px;
+    }
+
+    .btn-pix-validate {
+      background-color: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .demo-info-banner {
+      width: 100%;
+      max-width: 860px;
+      margin-top: 24px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 16px;
+      font-size: 13px;
+      color: #1e40af;
+      line-height: 1.5;
+    }
+
+    .demo-shield-test-box {
+      width: 100%;
+      max-width: 860px;
+      margin-top: 20px;
+      background: #0f172a;
+      color: #f8fafc;
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      border: 1px solid #334155;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    .shield-test-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .shield-test-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .shield-test-tag {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-family: monospace;
+      font-weight: 700;
+    }
+
+    .shield-test-intro {
+      font-size: 13px;
+      color: #94a3b8;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .shield-test-intro code {
+      background: #1e293b;
+      color: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+
+    .shield-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .shield-stat-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-num {
+      font-size: 24px;
+      font-weight: 800;
+      font-family: monospace;
+      color: #10b981;
+    }
+
+    .stat-label {
+      font-size: 11.5px;
+      color: #94a3b8;
+    }
+
+    .shield-checks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      padding: 10px 14px;
+      background: #111827;
+      border-radius: 8px;
+      border: 1px solid #1f2937;
+      font-size: 12px;
+      font-family: monospace;
+      margin-bottom: 16px;
+    }
+
+    .check-item strong {
+      color: #10b981;
+    }
+
+    .shield-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-test {
+      background: #2563eb;
+      color: #ffffff;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+
+    .btn-test:hover {
+      background: #1d4ed8;
+    }
+
+    .test-log {
+      font-size: 12px;
+      color: #a7f3d0;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="pix-navbar">
+    <div class="pix-logo">PIX</div>
+    <div class="pix-progress">Épreuve 4 / 12 • Domaine Sécurité</div>
+  </div>
+
+  <div class="pix-challenge-card c-challenge">
+    <h1 class="challenge-instruction question-title">Quels sont les bons réflexes pour se protéger d'une tentative d'hameçonnage (phishing) par courriel ?</h1>
+    
+    <p class="challenge-description statement">
+      Un employé reçoit un courriel prétendant provenir du service informatique et lui demandant de réinitialiser d'urgence son mot de passe via un lien.
+      Cochez <strong>toutes</strong> les réponses valides.
+    </p>
+
+    <div class="choices-list">
+      <label class="choice-item">
+        <input type="checkbox" name="q1" value="opt1" id="opt1">
+        <span>Vérifier minutieusement l'adresse d'expédition réelle (nom de domaine après le @)</span>
+      </label>
+
+      <label class="choice-item">
+        <input type="checkbox" name="q2" value="opt2" id="opt2">
+        <span>Survoler le lien avec le curseur sans cliquer pour contrôler l'URL de destination</span>
+      </label>
+
+      <label class="choice-item">
+        <input type="checkbox" name="q3" value="opt3" id="opt3">
+        <span>Répondre immédiatement au courriel en indiquant son mot de passe actuel pour vérification</span>
+      </label>
+
+      <label class="choice-item">
+        <input type="checkbox" name="q4" value="opt4" id="opt4">
+        <span>Signaler le message suspect au responsable de la sécurité des systèmes d'information (RSSI)</span>
+      </label>
+    </div>
+
+    <div class="pix-actions">
+      <button class="btn-pix-validate">Valider</button>
+    </div>
+  </div>
+
+  <!-- Épreuve Pix démo 2 : Menus déroulants en contexte (Texte à trous & Association d'IA) -->
+  <div class="pix-challenge-card c-challenge" style="margin-top: 24px;">
+    <h2 class="challenge-instruction question-title">Associez chaque application avec la technique d'intelligence artificielle correspondante :</h2>
+    
+    <div class="choices-list" style="gap: 16px;">
+      <p class="proposal" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0; padding: 10px 14px; background: #f8fafc; border-radius: 8px;">
+        <span>« La direction générale des impôts propose un <strong>agent conversationnel (chatbot)</strong> bilingue » :</span>
+        <select style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px;">
+          <option value="">- Choisir -</option>
+          <option value="exploration de données">exploration de données</option>
+          <option value="traitement automatique de la langue naturelle">traitement automatique de la langue naturelle</option>
+          <option value="vision par ordinateur">vision par ordinateur</option>
+        </select>
+      </p>
+
+      <p class="proposal" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0; padding: 10px 14px; background: #f8fafc; border-radius: 8px;">
+        <span>« Une start-up développe un logiciel de <strong>détection de fraudes financières</strong> pour les assureurs » :</span>
+        <select style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px;">
+          <option value="">- Choisir -</option>
+          <option value="exploration de données">exploration de données</option>
+          <option value="traitement automatique de la langue naturelle">traitement automatique de la langue naturelle</option>
+          <option value="vision par ordinateur">vision par ordinateur</option>
+        </select>
+      </p>
+
+      <p class="proposal" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0; padding: 10px 14px; background: #f8fafc; border-radius: 8px;">
+        <span>« La <strong>maintenance prédictive</strong> s'impose de plus en plus dans les usines » :</span>
+        <select style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px;">
+          <option value="">- Choisir -</option>
+          <option value="exploration de données">exploration de données</option>
+          <option value="traitement automatique de la langue naturelle">traitement automatique de la langue naturelle</option>
+          <option value="vision par ordinateur">vision par ordinateur</option>
+        </select>
+      </p>
+
+      <p class="proposal" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0; padding: 10px 14px; background: #f8fafc; border-radius: 8px;">
+        <span>« Le <strong>traitement d'images médicales</strong> au service de la prévention cardiovasculaire » :</span>
+        <select style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px;">
+          <option value="">- Choisir -</option>
+          <option value="exploration de données">exploration de données</option>
+          <option value="traitement automatique de la langue naturelle">traitement automatique de la langue naturelle</option>
+          <option value="vision par ordinateur">vision par ordinateur</option>
+        </select>
+      </p>
+
+      <p class="proposal" style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0; padding: 10px 14px; background: #f8fafc; border-radius: 8px;">
+        <span>« Cette <strong>voiture autonome</strong> peut détecter les piétons par temps de brouillard » :</span>
+        <select style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 14px;">
+          <option value="">- Choisir -</option>
+          <option value="exploration de données">exploration de données</option>
+          <option value="traitement automatique de la langue naturelle">traitement automatique de la langue naturelle</option>
+          <option value="vision par ordinateur">vision par ordinateur</option>
+        </select>
+      </p>
+    </div>
+
+    <div class="pix-actions">
+      <button class="btn-pix-validate">Valider</button>
+    </div>
+  </div>
+
+  <div class="demo-info-banner">
+    <strong>Démo PixPilot :</strong> Ouvre l'assistant via le bouton en bas à droite (<kbd>Alt + P</kbd>), puis clique sur <strong>Scan</strong>.
+  </div>
+
+  <!-- Panneau interactif de test du bouclier anti-détection -->
+  <div class="demo-shield-test-box">
+    <div class="shield-test-header">
+      <div class="shield-test-title">
+        <span>🛡️ Simulateur d'espionnage Pix (Test Bouclier Anti-Détection)</span>
+      </div>
+      <span class="shield-test-tag">BOUCLIER ACTIF</span>
+    </div>
+
+    <p class="shield-test-intro">
+      Pix tente d'espionner vos actions via des écouteurs <code>blur</code> (perte de focus), <code>visibilitychange</code> (changement d'onglet) et <code>mouseleave</code> (curseur hors de la page).
+      Grâce au bouclier PixPilot, tous ces écouteurs sont <strong>interceptés et détruits</strong>.
+    </p>
+
+    <div class="shield-grid">
+      <div class="shield-stat-card">
+        <span class="stat-num" id="stat-tab-detections">0</span>
+        <span class="stat-label">Changements d'onglet capturés par Pix</span>
+      </div>
+      <div class="shield-stat-card">
+        <span class="stat-num" id="stat-mouse-detections">0</span>
+        <span class="stat-label">Sorties de curseur capturées par Pix</span>
+      </div>
+      <div class="shield-stat-card">
+        <span class="stat-num" id="stat-listeners-killed">0</span>
+        <span class="stat-label">Écouteurs espions neutralisés</span>
+      </div>
+    </div>
+
+    <div class="shield-checks">
+      <div class="check-item"><span>document.hidden :</span> <strong id="chk-hidden">false</strong></div>
+      <div class="check-item"><span>document.visibilityState :</span> <strong id="chk-vis">visible</strong></div>
+      <div class="check-item"><span>document.hasFocus() :</span> <strong id="chk-focus">true</strong></div>
+    </div>
+
+    <div class="shield-actions">
+      <button id="btn-test-espion" class="btn-test">Tester l'injection d'un écouteur espion Pix</button>
+      <span id="test-log" class="test-log">Statut : Bouclier actif. Changez d'onglet ou sortez la souris pour tester.</span>
+    </div>
+  </div>
+
+  <!-- Scripts nécessaires pour le test direct -->
+  <script src="lib/jszip.min.js"></script>
+  <script src="lib/xlsx.mini.js"></script>
+  <script src="lib/html2canvas.min.js"></script>
+  <script src="lib/pix-extractor.js"></script>
+  <script src="lib/file-parser.js"></script>
+  <script src="lib/query-engine.js"></script>
+  <script src="lib/gemini.js"></script>
+  <script src="content/content.js"></script>
+
+  <script>
+    // Test direct de la simulation de surveillance Pix
+    (function() {
+      let spyTabDetections = 0;
+      let spyMouseDetections = 0;
+
+      // 1. Simulation d'un script Pix qui tente d'espionner (sur fenêtre ET sur la carte de question)
+      const challengeCard = document.querySelector('.pix-challenge-card');
+      try {
+        window.addEventListener('blur', function() {
+          spyTabDetections++;
+          document.getElementById('stat-tab-detections').textContent = spyTabDetections;
+        });
+
+        document.addEventListener('visibilitychange', function() {
+          spyTabDetections++;
+          document.getElementById('stat-tab-detections').textContent = spyTabDetections;
+        });
+
+        // Test mouseleave sur fenêtre
+        document.addEventListener('mouseleave', function() {
+          spyMouseDetections++;
+          document.getElementById('stat-mouse-detections').textContent = spyMouseDetections;
+        });
+
+        // Test mouseleave spécifiquement sur le conteneur de la question Pix
+        if (challengeCard) {
+          challengeCard.addEventListener('mouseleave', function() {
+            spyMouseDetections++;
+            document.getElementById('stat-mouse-detections').textContent = spyMouseDetections;
+          });
+          challengeCard.addEventListener('pointerleave', function() {
+            spyMouseDetections++;
+            document.getElementById('stat-mouse-detections').textContent = spyMouseDetections;
+          });
+        }
+
+        window.onblur = function() {
+          spyTabDetections++;
+          document.getElementById('stat-tab-detections').textContent = spyTabDetections;
+        };
+      } catch (e) {}
+
+      // 2. Mise à jour de l'affichage des métriques
+      function refreshStats() {
+        const stats = window.__PIXPILOT_PRIVACY_STATS__ || { destroyedListeners: 0 };
+        const killedEl = document.getElementById('stat-listeners-killed');
+        if (killedEl) killedEl.textContent = stats.destroyedListeners;
+
+        const hEl = document.getElementById('chk-hidden');
+        if (hEl) hEl.textContent = String(document.hidden);
+
+        const vEl = document.getElementById('chk-vis');
+        if (vEl) vEl.textContent = String(document.visibilityState);
+
+        const fEl = document.getElementById('chk-focus');
+        if (fEl) fEl.textContent = String(document.hasFocus ? document.hasFocus() : 'unknown');
+      }
+
+      setInterval(refreshStats, 500);
+      refreshStats();
+
+      // 3. Bouton interactif pour simuler une tentative d'attachement d'écouteur espion Pix
+      const testBtn = document.getElementById('btn-test-espion');
+      const logEl = document.getElementById('test-log');
+
+      testBtn.addEventListener('click', () => {
+        const before = window.__PIXPILOT_PRIVACY_STATS__?.destroyedListeners || 0;
+        
+        // Tentative d'attacher un écouteur blur espion sur window
+        window.addEventListener('blur', () => {
+          spyTabDetections++;
+        });
+
+        // Tentative d'attacher un écouteur visibilitychange espion
+        document.addEventListener('visibilitychange', () => {
+          spyTabDetections++;
+        });
+
+        // Tentative d'attacher un écouteur mouseleave espion sur document ET sur la question
+        document.addEventListener('mouseleave', () => {
+          spyMouseDetections++;
+        });
+
+        if (challengeCard) {
+          challengeCard.addEventListener('mouseleave', () => {
+            spyMouseDetections++;
+          });
+        }
+
+        refreshStats();
+        const after = window.__PIXPILOT_PRIVACY_STATS__?.destroyedListeners || 0;
+        logEl.textContent = `✓ 4 écouteurs espions (fenêtre + carte question) interceptés et détruits immédiatement (+${after - before}).`;
+      });
+    })();
+  </script>
+
+</body>
+</html>
+

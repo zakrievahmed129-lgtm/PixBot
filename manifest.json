@@ -1,0 +1,79 @@
+{
+  "manifest_version": 3,
+  "name": "PixPilot - Assistant IA Pix Épuré",
+  "version": "1.0.0",
+  "description": "Assistant IA moderne et minimaliste pour Pix avec Gemini. Analyse intelligente, support fichiers & réponse rapide.",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>",
+    "https://*.pix.fr/*",
+    "https://*.pix.org/*",
+    "https://generativelanguage.googleapis.com/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.pix.fr/*",
+        "https://*.pix.org/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "file:///*"
+      ],
+      "js": [
+        "content/privacy-shield.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "https://*.pix.fr/*",
+        "https://*.pix.org/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "file:///*"
+      ],
+      "js": [
+        "lib/jszip.min.js",
+        "lib/xlsx.mini.js",
+        "lib/html2canvas.min.js",
+        "lib/pix-extractor.js",
+        "lib/file-parser.js",
+        "lib/query-engine.js",
+        "lib/gemini.js",
+        "content/content.js"
+      ],
+      "css": [
+        "content/content.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/*",
+        "content/*"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
+
