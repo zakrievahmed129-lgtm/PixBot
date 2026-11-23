@@ -1,13 +1,14 @@
 {
   "manifest_version": 3,
-  "name": "PixPilot - Assistant IA Pix Épuré",
-  "version": "1.0.0",
-  "description": "Assistant IA moderne et minimaliste pour Pix avec Gemini. Analyse intelligente, support fichiers & réponse rapide.",
+  "name": "PixPilot - Assistant IA Universel & Pix",
+  "version": "2.1.0",
+  "description": "Assistant IA épuré disponible sur tous les sites (Chat quotidien + Mode Pix expert) propulsé par Gemini 3.5 Flash-Lite avec contrôle d'effort.",
   "permissions": [
     "storage",
     "activeTab",
     "scripting",
-    "tabs"
+    "tabs",
+    "sidePanel"
   ],
   "host_permissions": [
     "<all_urls>",
@@ -25,6 +26,21 @@
   },
   "background": {
     "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel/sidepanel.html"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab/newtab.html"
+  },
+  "commands": {
+    "toggle-pixpilot": {
+      "suggested_key": {
+        "default": "Alt+P",
+        "mac": "Alt+P"
+      },
+      "description": "Afficher / masquer le terminal PixPilot"
+    }
   },
   "content_scripts": [
     {
@@ -44,11 +60,7 @@
     },
     {
       "matches": [
-        "https://*.pix.fr/*",
-        "https://*.pix.org/*",
-        "http://localhost/*",
-        "http://127.0.0.1/*",
-        "file:///*"
+        "<all_urls>"
       ],
       "js": [
         "lib/jszip.min.js",
@@ -58,11 +70,11 @@
         "lib/file-parser.js",
         "lib/query-engine.js",
         "lib/gemini.js",
+        "lib/google-glass.js",
         "content/content.js"
       ],
-      "css": [
-        "content/content.css"
-      ],
+      "match_about_blank": true,
+      "match_origin_as_fallback": true,
       "run_at": "document_idle"
     }
   ],

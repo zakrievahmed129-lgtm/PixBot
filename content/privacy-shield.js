@@ -125,24 +125,43 @@
     return false;
   }
 
-  function isRootOrContainer(target) {
+  function isInsidePixPilot(target) {
+    return Boolean(
+      target &&
+      target.nodeType === 1 &&
+      (target.id === 'pixpilot-root' || target.closest?.('#pixpilot-root'))
+    );
+  }
+
+  function isGlobalWindowOrDoc(target) {
     if (!target) return false;
     if (target === window || target === document) return true;
     if (typeof Window !== 'undefined' && target instanceof Window) return true;
     if (typeof Document !== 'undefined' && target instanceof Document) return true;
+    return false;
+  }
+
+  function isRootOrOutTarget(target) {
+    if (isGlobalWindowOrDoc(target)) return true;
     if (document.documentElement && target === document.documentElement) return true;
     if (document.body && target === document.body) return true;
-    const tag = (target.tagName || '').toLowerCase();
-    if (tag === 'html' || tag === 'body' || tag === 'main' || tag === 'article' || tag === 'section') return true;
-    if (target.classList) {
-      const cls = typeof target.className === 'string' ? target.className.toLowerCase() : '';
+    return false;
+  }
+
+  function isMouseLeaveSpyTarget(target) {
+    if (isRootOrOutTarget(target)) return true;
+    if (target && target.nodeType === 1 && typeof target.className === 'string') {
+      const cls = target.className.toLowerCase();
       if (
-        cls.includes('challenge') ||
-        cls.includes('focus') ||
-        cls.includes('screen') ||
-        cls.includes('assessment') ||
-        cls.includes('card')
-      ) return true;
+        cls.includes('focus-zone-warning') ||
+        cls.includes('pix-challenge-card') ||
+        cls.includes('pix-challenge') ||
+        cls.includes('c-challenge') ||
+        cls.includes('challenge-item') ||
+        cls.includes('challenge__display')
+      ) {
+        return true;
+      }
     }
     return false;
   }
@@ -158,11 +177,11 @@
   // 4. INTERCEPTION ET DESTRUCTION DES ÉCOUTEURS D'ÉVÉNEMENTS (addEventListener)
   // ---------------------------------------------------------------------------
   const originalAddEventListener = EventTarget.prototype.addEventListener;
-  const originalRemoveEventListener = EventTarget.prototype.removeEventListener;
-  const wrapperMap = new WeakMap();
 
   const patchedAddEventListener = function (type, listener, options) {
-    if (!type || typeof listener !== 'function') {
+    const isValidListener = typeof listener === 'function' ||
+      (listener && typeof listener === 'object' && typeof listener.handleEvent === 'function');
+    if (!type || !isValidListener) {
       return originalAddEventListener.apply(this, arguments);
     }
 
@@ -174,22 +193,20 @@
       return;
     }
 
-    // B. Écouteurs de sortie de souris (mouseleave, pointerleave) -> DÉTRUITS sur tous les conteneurs et la page
-    // Seuls les champs de saisie purs pourraient en avoir (inutile pour répondre aux épreuves)
-    if ((lowerType === 'mouseleave' || lowerType === 'pointerleave') && !isFormInput(this)) {
+    // B. Écouteurs de sortie de souris (mouseleave, pointerleave) -> DÉTRUITS sur fenêtre, document et zone de question
+    if ((lowerType === 'mouseleave' || lowerType === 'pointerleave') && !isFormInput(this) && isMouseLeaveSpyTarget(this)) {
       stats.destroyedListeners++;
       return;
     }
 
-    // C. Écouteurs mouseout / pointerout sur conteneurs ou racine -> DÉTRUITS
-    if ((lowerType === 'mouseout' || lowerType === 'pointerout') && isRootOrContainer(this)) {
+    // C. Écouteurs mouseout / pointerout sur fenêtre/document/racine -> DÉTRUITS
+    if ((lowerType === 'mouseout' || lowerType === 'pointerout') && isRootOrOutTarget(this)) {
       stats.destroyedListeners++;
       return;
     }
 
-    // D. Perte de focus (blur, focusout) sur la carte de question ou la fenêtre -> DÉTRUITS
-    // Conserve le blur sur les champs de saisie pour que les exercices fonctionnent parfaitement
-    if ((lowerType === 'blur' || lowerType === 'focusout') && isRootOrContainer(this)) {
+    // D. Perte de focus (blur, focusout) sur window ou document -> DÉTRUITS (préserve les formulaires et composants Ember)
+    if ((lowerType === 'blur' || lowerType === 'focusout') && isGlobalWindowOrDoc(this)) {
       stats.destroyedListeners++;
       return;
     }
@@ -199,13 +216,6 @@
 
   patchedAddEventListener.toString = fakeNativeString('addEventListener');
   EventTarget.prototype.addEventListener = patchedAddEventListener;
-
-  const patchedRemoveEventListener = function (type, listener, options) {
-    const wrapped = listener && wrapperMap.get(listener);
-    return originalRemoveEventListener.call(this, type, wrapped || listener, options);
-  };
-  patchedRemoveEventListener.toString = fakeNativeString('removeEventListener');
-  EventTarget.prototype.removeEventListener = patchedRemoveEventListener;
 
   // ---------------------------------------------------------------------------
   // 5. NEUTRALISATION DES PROPRIÉTÉS INLINE (window.onblur = ..., etc.)
@@ -236,11 +246,12 @@
 
   // ---------------------------------------------------------------------------
   // 6. FILET DE SÉCURITÉ : PHASE DE CAPTURE PRIORITAIRE (CAPTURE-PHASE INTERCEPTION)
-  // Intercepte et étouffe les événements de détection dès qu'ils sont émis
+  // Utilise originalAddEventListener pour ne pas s'auto-bloquer.
   // ---------------------------------------------------------------------------
   const interceptInCapturePhase = (type, predicate) => {
     try {
-      window.addEventListener(
+      originalAddEventListener.call(
+        window,
         type,
         (e) => {
           if (!predicate || predicate(e)) {
@@ -259,16 +270,18 @@
   interceptInCapturePhase('visibilitychange', () => true);
   interceptInCapturePhase('webkitvisibilitychange', () => true);
 
-  // mouseleave / pointerleave : BLOQUÉS sur toute la fenêtre et conteneurs
-  interceptInCapturePhase('mouseleave', () => true);
-  interceptInCapturePhase('pointerleave', () => true);
+  // mouseleave / pointerleave : bloqués sur la fenêtre, document et zone d'épreuve (hors PixPilot)
+  interceptInCapturePhase('mouseleave', (e) => !isInsidePixPilot(e.target) && isMouseLeaveSpyTarget(e.target));
+  interceptInCapturePhase('pointerleave', (e) => !isInsidePixPilot(e.target) && isMouseLeaveSpyTarget(e.target));
 
-  // Perte de focus : bloquée sur la fenêtre et les conteneurs (autorisée entre les champs de formulaire d'exercice)
-  interceptInCapturePhase('blur', (e) => e.target === window || e.target === document || isRootOrContainer(e.target));
-  interceptInCapturePhase('focusout', (e) => e.target === window || e.target === document || isRootOrContainer(e.target));
+  // Perte de focus : bloquée sur la fenêtre et le document
+  interceptInCapturePhase('blur', (e) => isGlobalWindowOrDoc(e.target));
+  interceptInCapturePhase('focusout', (e) => isGlobalWindowOrDoc(e.target));
 
   // mouseout : bloqué si le curseur sort de la fenêtre, vers PixPilot ou hors du conteneur de question
   interceptInCapturePhase('mouseout', (e) => {
+    if (isInsidePixPilot(e.target)) return false;
+
     // 1. Curseur qui sort de la fenêtre
     if (!e.relatedTarget || e.clientX <= 0 || e.clientY <= 0 ||
         e.clientX >= window.innerWidth || e.clientY >= window.innerHeight) {
@@ -276,14 +289,15 @@
     }
 
     // 2. Curseur qui se déplace vers l'interface PixPilot
-    if (e.relatedTarget && (e.relatedTarget.id === 'pixpilot-root' || e.relatedTarget.closest?.('#pixpilot-root'))) {
+    if (isInsidePixPilot(e.relatedTarget)) {
       return true;
     }
 
     // 3. Curseur qui sort de la carte de question Pix vers l'extérieur
     try {
-      const challenge = document.querySelector('.c-challenge, .pix-challenge-card, .pix-challenge, [class*="challenge"], [class*="focus"], main, article');
-      if (challenge && challenge.contains(e.target) && !challenge.contains(e.relatedTarget)) {
+      const challenge = document.querySelector('.focus-zone-warning, .c-challenge, .pix-challenge-card, .pix-challenge, .challenge-item');
+      if (challenge && e.target instanceof Node && challenge.contains(e.target) &&
+          (!(e.relatedTarget instanceof Node) || !challenge.contains(e.relatedTarget))) {
         return true;
       }
     } catch (err) {}

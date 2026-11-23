@@ -10,69 +10,170 @@
 
 <body>
   <div class="popup-container">
-    <div class="popup-header">
-      <div class="pp-term-dots">
-        <span class="pp-dot red"></span>
-        <span class="pp-dot yellow"></span>
-        <span class="pp-dot green"></span>
-      </div>
+    <header class="popup-header">
       <div class="popup-brand">
-        <span class="popup-prompt">pix:~$</span>
-        <h1>pixpilot</h1>
+        <span class="brand-orb" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+            <path
+              d="M12 2.5c.4 0 .7.3.8.6l1.2 4.1a5 5 0 0 0 3.4 3.4l4.1 1.2c.3.1.6.4.6.8s-.3.7-.6.8l-4.1 1.2a5 5 0 0 0-3.4 3.4l-1.2 4.1c-.1.3-.4.6-.8.6s-.7-.3-.8-.6L10 18a5 5 0 0 0-3.4-3.4l-4.1-1.2c-.3-.1-.6-.4-.6-.8s.3-.7.6-.8L6.6 10A5 5 0 0 0 10 6.6l1.2-4.1c.1-.3.4-.6.8-.6z" />
+          </svg>
+        </span>
+        <span class="popup-title">PixPilot</span>
+        <div id="status-dot" class="status-dot" title="Statut clé API"></div>
       </div>
-      <div id="status-dot" class="status-dot" title="Statut API"></div>
+      <span id="save-feedback" class="saved-hint" aria-live="polite">Enregistré</span>
+    </header>
+
+    <div class="launch-row">
+      <button id="open-panel-btn" class="btn-pill primary" type="button">Ouvrir PixPilot</button>
+      <button id="open-chat-btn" class="btn-pill" type="button">Chat IA</button>
+      <button id="open-sidepanel-btn" class="btn-pill is-icon" type="button"
+        title="Panneau latéral Chrome (partout, PDF, chrome://)" aria-label="Panneau latéral">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="3"></rect>
+          <line x1="15" y1="3" x2="15" y2="21"></line>
+        </svg>
+      </button>
     </div>
 
-    <div class="popup-content">
-      <div class="shield-status-card">
-        <div class="shield-card-left">
-          <span class="shield-card-icon">🛡️</span>
-          <div class="shield-card-text">
-            <div class="shield-card-title">Anti-Détection Pix</div>
-            <div class="shield-card-desc">Écouteurs onglet &amp; souris neutralisés</div>
+    <section class="set-section">
+      <div class="set-heading">Intelligence</div>
+      <div class="set-group">
+        <div class="set-row is-stack">
+          <label for="model-select" class="set-label">Modèle</label>
+          <select id="model-select" class="pill-select">
+            <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite · rapide (défaut)</option>
+            <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+            <option value="gemini-2.5-pro">Gemini 2.5 Pro · précis</option>
+            <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash-Lite</option>
+            <option value="custom">Personnalisé…</option>
+          </select>
+          <input type="text" id="custom-model-input" class="pill-input" placeholder="ex : gemini-3.5-pro"
+            spellcheck="false" autocomplete="off" hidden>
+        </div>
+
+        <div class="set-row is-stack">
+          <div class="label-row">
+            <span class="set-label">Effort de réflexion</span>
+            <span class="effort-hint" id="effort-hint">Élevé</span>
+          </div>
+          <div class="effort-group" id="effort-group" data-level="high" role="radiogroup"
+            aria-label="Effort de réflexion">
+            <span class="effort-indicator"></span>
+            <button type="button" class="effort-btn" data-effort="minimal" role="radio"
+              aria-checked="false">Min</button>
+            <button type="button" class="effort-btn" data-effort="low" role="radio" aria-checked="false">Bas</button>
+            <button type="button" class="effort-btn" data-effort="medium" role="radio"
+              aria-checked="false">Moyen</button>
+            <button type="button" class="effort-btn is-active" data-effort="high" role="radio"
+              aria-checked="true">Élevé</button>
           </div>
         </div>
-        <span class="shield-status-pill">ACTIF</span>
       </div>
+    </section>
 
-      <div class="form-group">
-        <div class="label-row">
-          <label for="api-key" class="label">Clé API</label>
-          <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" class="link-subtle">AI
-            Studio ↗</a>
+    <section class="set-section">
+      <div class="set-heading">Interface</div>
+      <div class="set-group">
+        <label class="toggle-row">
+          <div>
+            <div class="toggle-label">Mode discret</div>
+            <div class="toggle-sub">Transparent hors survol · Alt+G</div>
+          </div>
+          <span class="pp-switch">
+            <input type="checkbox" id="opt-ghost-mode">
+            <span class="pp-switch-track"></span>
+            <span class="pp-switch-thumb"></span>
+          </span>
+        </label>
+
+        <label class="toggle-row">
+          <div>
+            <div class="toggle-label">Format compact</div>
+            <div class="toggle-sub">Fenêtre réduite · Alt+M</div>
+          </div>
+          <span class="pp-switch">
+            <input type="checkbox" id="opt-compact-mode">
+            <span class="pp-switch-track"></span>
+            <span class="pp-switch-thumb"></span>
+          </span>
+        </label>
+
+        <label class="toggle-row">
+          <div>
+            <div class="toggle-label">Style Google Recherche</div>
+            <div class="toggle-sub">Verre & Aperçu IA sur Google</div>
+          </div>
+          <span class="pp-switch">
+            <input type="checkbox" id="opt-google-glass" checked>
+            <span class="pp-switch-track"></span>
+            <span class="pp-switch-thumb"></span>
+          </span>
+        </label>
+
+        <label class="toggle-row" id="hide-host-row" hidden>
+          <div>
+            <div class="toggle-label">Masquer le bouton ici</div>
+            <div class="toggle-sub" id="hide-host-label">Sur ce site · Alt+P reste actif</div>
+          </div>
+          <span class="pp-switch">
+            <input type="checkbox" id="opt-hide-host">
+            <span class="pp-switch-track"></span>
+            <span class="pp-switch-thumb"></span>
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <section class="set-section">
+      <div class="set-heading">
+        <span>Pix</span>
+        <span class="state-chip" id="scope-pill" title="Bouclier anti-détection">Bouclier : veille</span>
+      </div>
+      <div class="set-group">
+        <label class="toggle-row">
+          <div>
+            <div class="toggle-label">Application automatique</div>
+            <div class="toggle-sub">Coche / remplit dès réception</div>
+          </div>
+          <span class="pp-switch">
+            <input type="checkbox" id="opt-auto-apply">
+            <span class="pp-switch-track"></span>
+            <span class="pp-switch-thumb"></span>
+          </span>
+        </label>
+      </div>
+    </section>
+
+    <section class="set-section">
+      <div class="set-heading">
+        <span>Clé API Gemini</span>
+        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" class="link-subtle">Obtenir
+          une clé ↗</a>
+      </div>
+      <div class="set-group">
+        <div class="set-row is-stack">
+          <div class="input-wrapper">
+            <input type="password" id="api-key" class="pill-input mono" placeholder="AIzaSy…" autocomplete="off"
+              spellcheck="false">
+            <button id="toggle-key-visibility" class="btn-eye" type="button" title="Afficher / masquer">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+          <div id="key-status" class="key-status">Aucune clé</div>
         </div>
-        <div class="input-wrapper">
-          <input type="password" id="api-key" placeholder="AIzaSy..." autocomplete="off">
-          <button id="toggle-key-visibility" class="btn-eye" type="button" title="Afficher/Masquer">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-              <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-          </button>
-        </div>
       </div>
+    </section>
 
-      <div class="form-group">
-        <label for="model-select" class="label">Modèle</label>
-        <select id="model-select">
-          <option value="gemini-2.5-flash">gemini-2.5-flash</option>
-          <option value="gemini-2.0-flash-lite">gemini-2.0-flash-lite</option>
-          <option value="gemini-3.1-flash-lite">gemini-3.1-flash-lite</option>
-          <option value="gemini-1.5-flash">gemini-1.5-flash</option>
-          <option value="custom">Personnalisé...</option>
-        </select>
-        <input type="text" id="custom-model-input" placeholder="ex: gemini-2.5-pro"
-          style="display:none; margin-top: 6px;">
-      </div>
-
-      <button id="save-btn" class="btn-primary">Enregistrer</button>
-      <div id="save-feedback" class="feedback">Enregistré ✓</div>
-
-      <div class="popup-footer">
-        <div class="shortcut-badge"><kbd>Alt</kbd> + <kbd>P</kbd></div>
-        <a href="https://app.pix.fr" target="_blank" class="btn-link">pix.fr ↗</a>
-      </div>
-    </div>
+    <footer class="popup-footer">
+      <span class="shortcut-badge"><kbd>Alt+P</kbd> ouvrir</span>
+      <a href="https://app.pix.fr" target="_blank" rel="noreferrer" class="btn-link">app.pix.fr ↗</a>
+    </footer>
   </div>
 
   <script src="popup.js"></script>

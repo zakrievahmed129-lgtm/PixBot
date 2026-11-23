@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nouvel onglet</title>
+  <link rel="stylesheet" href="newtab.css">
+</head>
+<body>
+  <header class="nt-topbar">
+    <nav class="nt-top-nav" aria-label="Services">
+      <a class="nt-top-pill" href="https://mail.google.com">Gmail</a>
+      <a class="nt-top-pill" href="https://www.google.com/imghp">Images</a>
+      <a class="nt-top-pill" href="https://app.pix.fr">Pix</a>
+    </nav>
+  </header>
+
+  <main class="nt-stage">
+    <div class="nt-logo" aria-label="Google" role="img">
+      <svg viewBox="0 0 282 104" width="244" height="90" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <!-- G -->
+        <path class="g-blue" d="M37.5 41.2h27.6c.8 3.6 1.2 7 1.2 10.6 0 16.9-11.3 29.2-28.7 29.2C18.5 81 3 65.5 3 46.5S18.5 12 37.6 12c9.3 0 17.1 3.4 23.1 9l-6.6 6.5c-4.3-4-9.8-6.4-16.5-6.4-13.9 0-24.9 11.4-24.9 25.4s11 25.4 24.9 25.4c11.6 0 18.8-6.6 20-16.3H37.5V41.2z"/>
+        <!-- o1 -->
+        <path class="g-red" d="M95.5 36.2c12.3 0 21.8 9.2 21.8 22.3s-9.5 22.3-21.8 22.3-21.8-9.2-21.8-22.3 9.5-22.3 21.8-22.3zm0 36c7 0 12.2-5.4 12.2-13.7s-5.2-13.7-12.2-13.7-12.2 5.4-12.2 13.7 5.2 13.7 12.2 13.7z"/>
+        <!-- o2 -->
+        <path class="g-yellow" d="M144.6 36.2c12.3 0 21.8 9.2 21.8 22.3s-9.5 22.3-21.8 22.3-21.8-9.2-21.8-22.3 9.5-22.3 21.8-22.3zm0 36c7 0 12.2-5.4 12.2-13.7s-5.2-13.7-12.2-13.7-12.2 5.4-12.2 13.7 5.2 13.7 12.2 13.7z"/>
+        <!-- g -->
+        <path class="g-blue" d="M214.2 37.6V77c0 16.2-9.5 22.8-20.9 22.8-10.7 0-17.1-7.2-19.5-13l8.4-3.5c1.5 3.6 5.2 7.8 11.1 7.8 7.3 0 11.7-4.5 11.7-13v-3.2h-.3c-2.2 2.7-6.3 5-11.6 5-11.1 0-21.2-9.7-21.2-22.2 0-12.6 10.1-22.4 21.2-22.4 5.3 0 9.4 2.4 11.6 5h.3v-3.7h9.2zm-8.5 20.9c0-7.9-5.3-13.7-11.9-13.7s-12.2 5.8-12.2 13.7c0 7.8 5.4 13.5 12.2 13.5s11.9-5.7 11.9-13.5z"/>
+        <!-- l -->
+        <path class="g-green" d="M233.4 14.2v65.6h-9.4V14.2h9.4z"/>
+        <!-- e -->
+        <path class="g-red" d="M271.2 66.2l7.4 5c-2.4 3.6-8.2 9.6-18.3 9.6-12.5 0-21.8-9.6-21.8-22.3 0-13.3 9.4-22.3 20.7-22.3 11.4 0 17 9.2 18.8 14.2l1 2.5-29.4 12.2c2.2 4.4 5.8 6.7 10.8 6.7s8.6-2.5 10.8-5.6zm-23.3-8.4l19.6-8.1c-1.1-2.8-4.4-4.7-8.2-4.7-4.9 0-11.6 4.3-11.4 12.8z"/>
+      </svg>
+    </div>
+
+    <form class="nt-search-pill" id="nt-search-form" autocomplete="off">
+      <svg class="nt-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+      </svg>
+      <input type="text" id="nt-search-input" class="nt-search-input" placeholder="Demander à Google ou saisir une URL…" autofocus>
+      <div class="nt-search-actions">
+        <button type="button" class="nt-ai-pill" id="nt-open-ai" title="Envoyer à PixPilot IA (Shift+Entrée)">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M12 2.5c.4 0 .7.3.8.6l1.2 4.1a5 5 0 0 0 3.4 3.4l4.1 1.2c.3.1.6.4.6.8s-.3.7-.6.8l-4.1 1.2a5 5 0 0 0-3.4 3.4l-1.2 4.1c-.1.3-.4.6-.8.6s-.7-.3-.8-.6L10 18a5 5 0 0 0-3.4-3.4l-4.1-1.2c-.3-.1-.6-.4-.6-.8s.3-.7.6-.8L6.6 10A5 5 0 0 0 10 6.6l1.2-4.1c.1-.3.4-.6.8-.6z"/>
+          </svg>
+          <span>Mode IA</span>
+        </button>
+        <button type="submit" class="nt-search-submit" title="Rechercher sur Google" aria-label="Rechercher">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </div>
+    </form>
+
+    <section class="nt-shortcuts-grid" id="nt-shortcuts-grid" aria-label="Raccourcis"></section>
+  </main>
+
+  <div class="nt-modal-scrim" id="nt-modal-scrim" hidden>
+    <form class="nt-modal" id="nt-shortcut-form" autocomplete="off">
+      <div class="nt-modal-head">
+        <span>Ajouter un raccourci</span>
+        <button type="button" class="nt-modal-close" id="nt-modal-close" aria-label="Fermer">&times;</button>
+      </div>
+      <label class="nt-field">
+        <span>Nom</span>
+        <input type="text" id="nt-sc-name" placeholder="ex : Pronote" maxlength="24" required>
+      </label>
+      <label class="nt-field">
+        <span>URL</span>
+        <input type="text" id="nt-sc-url" placeholder="https://…" required>
+      </label>
+      <div class="nt-modal-actions">
+        <button type="button" class="nt-btn-ghost" id="nt-modal-cancel">Annuler</button>
+        <button type="submit" class="nt-btn-primary">Ajouter</button>
+      </div>
+    </form>
+  </div>
+
+  <script src="../lib/jszip.min.js"></script>
+  <script src="../lib/xlsx.mini.js"></script>
+  <script src="../lib/html2canvas.min.js"></script>
+  <script src="../lib/pix-extractor.js"></script>
+  <script src="../lib/file-parser.js"></script>
+  <script src="../lib/query-engine.js"></script>
+  <script src="../lib/gemini.js"></script>
+  <script src="../content/content.js"></script>
+  <script src="newtab.js"></script>
+</body>
+</html>
